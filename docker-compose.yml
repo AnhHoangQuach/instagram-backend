@@ -1,6 +1,9 @@
 version: '3'
 services:
   instagram-backend:
+    depends_on:
+      - mongo
+    restart: always
     build:
       dockerfile: Dockerfile
       context: ./
@@ -9,6 +12,16 @@ services:
       - ./:/instagram-backend
     stdin_open: true
     environment:
-      - DB_PROD=${DB_PROD}
+      CHOKIDAR_USEPOLLING: 'true'
     ports:
       - '5000:5000'
+  mongo:
+    image: mongo
+    container_name: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: instagram
+    volumes:
+      - ~/mongo/data:/data/db
+    ports:
+      - 27017:27017
