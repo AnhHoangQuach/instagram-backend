@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const User = require('../models/User');
 
 const {
@@ -29,6 +28,26 @@ module.exports.signup = async (req, res, next) => {
 
   try {
     const user = await User.create({ username, fullname, email, password });
+    const token = user.getToken();
+    res.status(200).json({ token });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports.login = async (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || !password)
+    return res.status(400).send({ error: 'Email and password are required' });
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).send({ error: 'Email or password is incorrect' });
+
+    const isMatch = await user.checkPassword(password);
+    if (!isMatch) return res.status(400).send({ error: 'Email or password is incorrect' });
+
     const token = user.getToken();
     res.status(200).json({ token });
   } catch (err) {
