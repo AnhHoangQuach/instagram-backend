@@ -11,12 +11,12 @@ const CommentSchema = new mongoose.Schema({
     ref: 'Post',
     required: true,
   },
-  text: {
-    type: String,
-    required: [true, 'Please enter the comment'],
-    trim: true,
-  },
+  content: String,
   createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
     type: Date,
     default: Date.now,
   },
