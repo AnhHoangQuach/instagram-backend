@@ -4,16 +4,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const UserSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: [true, 'Please enter your username'],
-    trim: true,
-    unique: true,
-  },
-  fullname: {
-    type: String,
-    required: true,
-  },
   email: {
     type: String,
     required: [true, 'Please enter your email'],
@@ -26,6 +16,17 @@ const UserSchema = new mongoose.Schema({
       }
     },
   },
+  fullname: {
+    type: String,
+    required: true,
+  },
+  username: {
+    type: String,
+    required: [true, 'Please enter your username'],
+    trim: true,
+    lowercase: true,
+    unique: true,
+  },
   password: {
     type: String,
     required: [true, 'Please enter your password'],
@@ -36,24 +37,20 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
-  bio: String,
-  followers: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
-  followersCount: {
-    type: Number,
-    default: 0,
+  bio: {
+    type: String,
+    maxlength: 130,
   },
-  followingCount: {
-    type: Number,
-    default: 0,
-  },
-  following: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
-  posts: [{ type: mongoose.Schema.ObjectId, ref: 'Post' }],
-  postCount: {
-    type: Number,
-    default: 0,
+  website: {
+    type: String,
+    maxlength: 65,
   },
   savedPosts: [{ type: mongoose.Schema.ObjectId, ref: 'Post' }],
   createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
     type: Date,
     default: Date.now,
   },
