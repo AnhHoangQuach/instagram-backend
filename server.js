@@ -8,6 +8,7 @@ const FacebookStrategy = require('passport-facebook').Strategy;
 
 const apiRouter = require('./routes');
 
+app.use(cors());
 app.use(passport.initialize());
 app.use(express.json());
 
