@@ -54,7 +54,3 @@ module.exports.login = async (req, res, next) => {
     next(err);
   }
 };
-
-module.exports.checkHealth = (req, res, next) => {
-  return res.status(200).send({ message: 'Instagram server is up and running' });
-};
