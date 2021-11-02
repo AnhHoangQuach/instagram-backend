@@ -7,6 +7,9 @@ const PORT = process.env.PORT || 5000;
 const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
 
+//model
+const User = require('./models/User');
+
 const apiRouter = require('./routes');
 
 app.use(cors());
@@ -33,10 +36,30 @@ passport.use(
       callbackURL: process.env.CALLBACK_URL,
       profileFields: ['emails', 'name', 'photos'],
     },
-    function (accessToken, refreshToken, profile, done) {
+    function async(accessToken, refreshToken, profile, done) {
       process.nextTick(function () {
-        console.log(accessToken, refreshToken, profile, done);
-        return done(null, profile);
+        User.findOne({ email: profile.emails[0].value }, (err, user) => {
+          if (err) return done(err);
+
+          if (user) {
+            return done(null, user);
+          } else {
+            var newUser = new User({
+              email: profile.emails[0].value,
+              fullname: profile.name.familyName + ' ' + profile.name.givenName,
+              username: 'userfb',
+              password: '123456',
+              avatar:
+                profile.photos[0].value ||
+                'https://res.cloudinary.com/instagram-cloud-store/image/upload/v1635824574/default_gwdper.jpg',
+            });
+
+            newUser.save((err) => {
+              if (err) throw err;
+              return done(null, newUser);
+            });
+          }
+        });
       });
     }
   )

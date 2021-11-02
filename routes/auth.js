@@ -12,9 +12,9 @@ authRouter.get('/facebook', passport.authenticate('facebook', { session: false, 
 
 authRouter.get(
   '/facebook/callback',
-  passport.authenticate('facebook', { successRedirect: '/', failureRedirect: '/login' }),
-  function (req, res) {
-    // save user and return jwt
-  }
+  passport.authenticate('facebook', {
+    successRedirect: `${process.env.FRONTEND_URL}/login`,
+    failureRedirect: `${process.env.FRONTEND_URL}/signup`,
+  })
 );
 module.exports = authRouter;
