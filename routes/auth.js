@@ -16,7 +16,7 @@ authRouter.get(
     failureRedirect: '/login',
   }),
   (req, res) => {
-    res.redirect('facebook.com');
+    res.redirect('http://localhost:3000/login');
   }
 );
 module.exports = authRouter;
