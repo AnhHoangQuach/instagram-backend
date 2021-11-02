@@ -20,12 +20,14 @@ app.use('/api', apiRouter);
 
 connectToDb();
 
-passport.serializeUser(function (user, done) {
-  done(null, user);
+passport.serializeUser((user, done) => {
+  done(null, user.email);
 });
 
-passport.deserializeUser(function (obj, done) {
-  done(null, obj);
+passport.deserializeUser((email, done) => {
+  User.findOne({ email: email }, (err, user) => {
+    done(err, user);
+  });
 });
 
 passport.use(
@@ -36,7 +38,7 @@ passport.use(
       callbackURL: process.env.CALLBACK_URL,
       profileFields: ['emails', 'name', 'photos'],
     },
-    function async(accessToken, refreshToken, profile, done) {
+    function (accessToken, refreshToken, profile, done) {
       process.nextTick(function () {
         User.findOne({ email: profile.emails[0].value }, (err, user) => {
           if (err) return done(err);
