@@ -54,3 +54,10 @@ module.exports.login = async (req, res, next) => {
     next(err);
   }
 };
+
+module.exports.getMe = (req, res, next) => {
+  const { avatar, username, fullname, email, _id, website, bio } = req.user;
+  res.status(200).json({
+    data: { avatar, username, fullname, email, _id, website, bio },
+  });
+};
