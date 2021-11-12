@@ -1,8 +1,9 @@
 const express = require('express');
 const passport = require('passport');
 const authRouter = express.Router();
+const authMiddleware = require('../middlewares/auth');
 
-const { signup, login } = require('../controllers/authController');
+const { signup, login, getMe } = require('../controllers/authController');
 
 authRouter.post('/signup', signup);
 
@@ -13,10 +14,12 @@ authRouter.get('/facebook', passport.authenticate('facebook', { session: false, 
 authRouter.get(
   '/facebook/callback',
   passport.authenticate('facebook', {
-    failureRedirect: '/login',
+    failureRedirect: 'http://localhost:3000/signup',
   }),
   (req, res) => {
     res.redirect('http://localhost:3000/login');
   }
 );
+
+authRouter.get('/me', authMiddleware.protect, getMe);
 module.exports = authRouter;
