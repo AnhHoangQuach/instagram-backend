@@ -9,7 +9,9 @@ module.exports.protect = async (req, res, next) => {
   }
 
   if (!token) {
-    return res.status(403).send({ error: 'You need to be logged in to visit this route' });
+    return res
+      .status(403)
+      .send({ status: 'error', message: 'You need to be logged in to visit this route' });
   }
 
   try {
@@ -17,11 +19,15 @@ module.exports.protect = async (req, res, next) => {
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      return res.status(400).send({ error: `No user found for ID ${decoded.id}` });
+      return res
+        .status(400)
+        .send({ status: 'fail', message: `No user found for ID ${decoded.id}` });
     }
     req.user = user;
     next();
   } catch (err) {
-    return res.status(403).send({ error: 'You need to be logged in to visit this route' });
+    return res
+      .status(403)
+      .send({ status: 'error', message: 'You need to be logged in to visit this route' });
   }
 };
