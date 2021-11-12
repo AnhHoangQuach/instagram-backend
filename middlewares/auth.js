@@ -9,10 +9,7 @@ module.exports.protect = async (req, res, next) => {
   }
 
   if (!token) {
-    return next({
-      message: 'You need to be logged in to visit this route',
-      statusCode: 403,
-    });
+    return res.status(403).send({ error: 'You need to be logged in to visit this route' });
   }
 
   try {
@@ -20,14 +17,11 @@ module.exports.protect = async (req, res, next) => {
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      return next({ message: `No user found for ID ${decoded.id}` });
+      return res.status(400).send({ error: `No user found for ID ${decoded.id}` });
     }
     req.user = user;
     next();
   } catch (err) {
-    next({
-      message: 'You need to be logged in to visit this route',
-      statusCode: 403,
-    });
+    return res.status(403).send({ error: 'You need to be logged in to visit this route' });
   }
 };
