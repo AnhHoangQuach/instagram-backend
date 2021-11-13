@@ -2,32 +2,29 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 module.exports.protect = async (req, res, next) => {
-  let token;
-
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-
-  if (!token) {
-    return res
-      .status(403)
-      .send({ status: 'error', message: 'You need to be logged in to visit this route' });
-  }
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res
-        .status(400)
-        .send({ status: 'fail', message: `No user found for ID ${decoded.id}` });
+    res.locals.isAuth = false;
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
     }
-    req.user = user;
+
+    if (!token) {
+      next();
+      return res.status(401).send({ status: 'error', message: 'Unauthorized' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded) {
+      let user = await User.findById(decoded.id).select('-_id -password');
+
+      if (user) {
+        req.user = user;
+        res.locals.isAuth = true;
+      }
+    }
     next();
   } catch (err) {
-    return res
-      .status(403)
-      .send({ status: 'error', message: 'You need to be logged in to visit this route' });
+    return res.status(401).send({ status: 'error', message: 'Unauthorized' });
   }
 };

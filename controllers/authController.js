@@ -59,12 +59,16 @@ module.exports.login = async (req, res, next) => {
 };
 
 module.exports.getMe = (req, res, next) => {
-  if (req.user) {
-    const { avatar, username, fullname, email, _id, website, bio } = req.user;
+  try {
+    const { isAuth = false } = res.locals;
+    if (!isAuth) {
+      return res.status(401).json({ status: 'error', message: 'Failed' });
+    }
     res.status(200).json({
-      data: { avatar, username, fullname, email, _id, website, bio },
+      data: { user: req.user },
+      status: 'success',
     });
-  } else {
-    return res.status(400).json({ status: 'error', message: 'Not authenticate' });
+  } catch (err) {
+    return res.status(401).json({ status: 'error', message: 'Failed' });
   }
 };
