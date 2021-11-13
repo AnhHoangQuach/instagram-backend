@@ -11,7 +11,9 @@ module.exports.protect = async (req, res, next) => {
 
     if (!token) {
       next();
-      return res.status(401).send({ status: 'error', message: 'Unauthorized' });
+      return res
+        .status(401)
+        .send({ status: 'error', message: 'Unauthorized. You need login or sign up' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
