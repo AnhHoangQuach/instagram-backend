@@ -27,6 +27,6 @@ module.exports.protect = async (req, res, next) => {
     }
     next();
   } catch (err) {
-    return res.status(401).send({ status: 'error', message: 'Unauthorized' });
+    return res.status(401).send({ status: 'error', message: err.message });
   }
 };
