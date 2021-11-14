@@ -8,7 +8,7 @@ const {
   validatePassword,
 } = require('../utils/validation');
 
-module.exports.signup = async (req, res, next) => {
+module.exports.signup = async (req, res) => {
   const { username, fullname, email, password } = req.body;
 
   const usernameError = validateUsername(username);
@@ -32,11 +32,11 @@ module.exports.signup = async (req, res, next) => {
     const token = user.getToken();
     res.status(200).json({ status: 'success', data: { token } });
   } catch (err) {
-    next(err);
+    return res.status(503).json({ message: 'Service error. Please try again later' });
   }
 };
 
-module.exports.login = async (req, res, next) => {
+module.exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password)
@@ -45,20 +45,20 @@ module.exports.login = async (req, res, next) => {
   try {
     const user = await User.findOne({ email });
     if (!user)
-      return res.status(400).json({ status: 'fail', message: 'Email or password is incorrect' });
+      return res.status(401).json({ status: 'error', message: 'Email or password is incorrect' });
 
     const isMatch = await user.checkPassword(password);
     if (!isMatch)
-      return res.status(400).json({ status: 'fail', message: 'Email or password is incorrect' });
+      return res.status(401).json({ status: 'error', message: 'Email or password is incorrect' });
 
     const token = user.getToken();
-    res.status(200).json({ token });
+    return res.status(200).json({ status: 'success', data: { token } });
   } catch (err) {
-    next(err);
+    return res.status(503).json({ message: 'Service error. Please try again later' });
   }
 };
 
-module.exports.getMe = (req, res, next) => {
+module.exports.getMe = (req, res) => {
   try {
     const { isAuth = false } = res.locals;
     if (!isAuth) {
@@ -69,6 +69,6 @@ module.exports.getMe = (req, res, next) => {
       status: 'success',
     });
   } catch (err) {
-    return res.status(401).json({ status: 'error', message: 'Failed' });
+    return res.status(401).json({ status: 'error', message: err.message });
   }
 };
