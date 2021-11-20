@@ -1,9 +1,11 @@
 const cloudinary = require('cloudinary').v2;
 const { formatCloudinaryUrl } = require('../utils/helpers');
+const Post = require('../models/Post');
+const ObjectId = require('mongoose').Types.ObjectId;
 
 module.exports.createPost = async (req, res, next) => {
-  const user = res.locals.user;
-
+  const user = req.user;
+  const { caption, hashtags } = req.body;
   if (!req.files) {
     return res.status(400).send({ error: 'Please provide the image to upload.' });
   }
@@ -24,10 +26,62 @@ module.exports.createPost = async (req, res, next) => {
     );
     // await all the cloudinary upload functions in promise.all, exactly where the magic happens
     let imageResponses = await Promise.all(multiplePicturePromise);
-    res.status(200).json({ images: imageResponses });
+    const thumbnailUrl = imageResponses.map((item) => {
+      return formatCloudinaryUrl(
+        item.secure_url,
+        {
+          width: 400,
+          height: 400,
+        },
+        true
+      );
+    });
+
+    const imagesFormat = imageResponses.map(({ width, height, format, url, secure_url }) => {
+      return { width, height, format, url, secure_url };
+    });
+    const post = await Post.create({
+      images: imagesFormat,
+      thumbnail: thumbnailUrl,
+      user: user._id,
+      caption,
+      hashtags,
+    });
+    res.status(200).json({ status: 'success', data: { post } });
   } catch (err) {
     res.status(500).json({
+      status: 'error',
       message: err.message,
     });
+  }
+};
+
+module.exports.getPost = async (req, res, next) => {
+  const { postId } = req.params;
+  try {
+    const post = await Post.aggregate([
+      { $match: { _id: ObjectId(postId) } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+      {
+        $unset: ['user.password'],
+      },
+    ]);
+    if (post.length === 0) {
+      return res
+        .status(404)
+        .json({ status: 'error', message: 'Could not find a post with that id.' });
+    }
+
+    res.status(200).json({ status: 'success', data: { post: post[0] } });
+  } catch (err) {
+    return res.status(404).json({ status: 'error', message: err.message });
   }
 };

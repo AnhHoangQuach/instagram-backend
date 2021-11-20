@@ -1,5 +1,6 @@
 const express = require('express');
 const postRouter = express.Router();
+const authMiddleware = require('../middlewares/auth');
 
 const multer = require('multer');
 
@@ -11,8 +12,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-const { createPost } = require('../controllers/postController');
+const { createPost, getPost } = require('../controllers/postController');
 
-postRouter.post('/create', upload.array('pictures', 10), createPost);
+postRouter.post('/create', authMiddleware.protect, upload.array('pictures', 10), createPost);
+
+postRouter.get('/:postId', getPost);
 
 module.exports = postRouter;
