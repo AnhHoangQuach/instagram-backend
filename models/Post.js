@@ -2,10 +2,20 @@ const mongoose = require('mongoose');
 
 const PostSchema = new mongoose.Schema({
   images: {
-    type: [String],
+    type: [
+      {
+        width: Number,
+        height: Number,
+        format: String,
+        url: String,
+        secure_url: String,
+      },
+    ],
     validate: (v) => v === null || v.length > 0,
   },
-  thumbnail: String,
+  thumbnail: {
+    type: [String],
+  },
   user: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
