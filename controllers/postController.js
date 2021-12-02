@@ -125,9 +125,6 @@ module.exports.getPosts = async (req, res, next) => {
 
   try {
     const posts = await Post.aggregate(pipeline);
-    if (posts.length === 0) {
-      return res.status(404).json({ status: 'error', message: 'Could not find any posts.' });
-    }
     res.status(200).json({ status: 'success', data: { posts } });
   } catch (err) {
     return res.status(404).json({ status: 'error', message: err.message });
