@@ -85,3 +85,48 @@ module.exports.getPost = async (req, res, next) => {
     return res.status(404).json({ status: 'error', message: err.message });
   }
 };
+
+module.exports.getPosts = async (req, res, next) => {
+  const { page, limit, orderBy, user, hashtags } = req.query;
+  const orderByValue = orderBy === 'desc' ? -1 : 1;
+  if (parseInt(page) == 0) {
+    return res.status(404).json({ status: 'error', message: 'Page number not zero' });
+  }
+
+  let pipeline = [
+    { $sort: { createdAt: orderByValue } },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'user',
+        foreignField: '_id',
+        as: 'user',
+      },
+    },
+    { $unwind: '$user' },
+    {
+      $unset: ['user.password'],
+    },
+    { $skip: parseInt(page - 1) * parseInt(limit) },
+    { $limit: parseInt(limit) },
+  ];
+
+  if (user) {
+    pipeline.unshift({
+      $match: { user: ObjectId(user) },
+    });
+  }
+
+  if (hashtags) {
+    pipeline.push({
+      $match: { hashtags: { $in: hashtags } },
+    });
+  }
+
+  try {
+    const posts = await Post.aggregate(pipeline);
+    res.status(200).json({ status: 'success', data: { posts } });
+  } catch (err) {
+    return res.status(404).json({ status: 'error', message: err.message });
+  }
+};
