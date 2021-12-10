@@ -1,5 +1,6 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
+const Follower = require('../models/Follower');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 module.exports.getUser = async (req, res, next) => {
@@ -61,23 +62,75 @@ module.exports.bookmarkPost = async (req, res, next) => {
 module.exports.followUser = async (req, res, next) => {
   const { userId } = req.params;
   const user = req.user;
-  if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+  if (!user || !userId) {
+    return res.status(404).json({ status: 'error', message: 'User not found' });
   }
 
   try {
-    const userToFollow = await User.findById(userId);
-    if (!userToFollow) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: 'Could not find a user with that id.' });
+    const mySelf = await Follower.findOne({ user: user.id });
+    const userToFollow = await Follower.findOne({ user: userId });
+
+    const isFollowing =
+      mySelf.following.length > 0 &&
+      mySelf.following.filter((following) => following.user.toString() === userId).length > 0;
+
+    if (isFollowing) {
+      return res.status(401).send('User Already Followed');
     }
-    if (userId === user.id) {
-      return res
-        .status(404)
-        .json({ message: "You can't unfollow/follow yourself", status: 'error' });
-    }
+
+    await mySelf.following.unshift({ user: userId });
+    await mySelf.save();
+
+    await userToFollow.followers.unshift({ user: user.id });
+    await userToFollow.save();
+
+    return res.status(200).json({ status: 'success', message: 'Follow Success' });
   } catch (err) {
+    return res.status(500).json({ message: 'Something error', status: err.message });
+  }
+};
+
+module.exports.unfollowUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const user = req.user;
+
+    const mySelf = await Follower.findOne({
+      user: user.id,
+    });
+
+    const userToUnfollow = await Follower.findOne({
+      user: userId,
+    });
+
+    if (!user || !userToUnfollow) {
+      return res.status(404).send('User not found');
+    }
+
+    const isFollowing =
+      mySelf.following.length > 0 &&
+      mySelf.following.filter((following) => following.user.toString() === userId).length === 0;
+
+    if (isFollowing) {
+      return res.status(401).send('User Not Followed before');
+    }
+
+    const removeFollowing = await mySelf.following
+      .map((following) => following.user.toString())
+      .indexOf(userId);
+
+    await mySelf.following.splice(removeFollowing, 1);
+    await mySelf.save();
+
+    const removeFollower = await userToUnfollow.followers
+      .map((follower) => follower.user.toString())
+      .indexOf(userId);
+
+    await userToUnfollow.followers.splice(removeFollower, 1);
+    await userToUnfollow.save();
+
+    return res.status(200).send({ status: 'success', message: 'Unfollow Success' });
+  } catch (error) {
     return res.status(500).json({ message: 'Something error', status: err.message });
   }
 };
