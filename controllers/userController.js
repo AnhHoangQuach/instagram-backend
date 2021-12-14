@@ -18,7 +18,19 @@ module.exports.getUser = async (req, res, next) => {
         .send({ status: 'error', message: 'Could not find a user with that id.' });
     }
 
-    res.status(200).json({ status: 'success', data: { user } });
+    const profileFollowStats = await Follower.findOne({ user: userId });
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        user,
+        followersLength:
+          profileFollowStats.followers.length > 0 ? profileFollowStats.followers.length : 0,
+
+        followingLength:
+          profileFollowStats.following.length > 0 ? profileFollowStats.following.length : 0,
+      },
+    });
   } catch (err) {
     return res.status(404).send({ status: 'error', message: err.message });
   }
@@ -134,3 +146,42 @@ module.exports.unfollowUser = async (req, res, next) => {
     return res.status(500).json({ message: 'Something error', status: err.message });
   }
 };
+
+module.exports.getFollowing = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const users = await Follower.findOne({ user: userId }).populate(
+      'following.user',
+      '-password -savedPosts'
+    );
+
+    return res.status(200).json({ status: 'success', data: users.following });
+  } catch (err) {
+    return res.status(500).json({ message: 'Something error', status: err.message });
+  }
+};
+
+module.exports.getFollowers = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const users = await Follower.findOne({ user: userId }).populate(
+      'followers.user',
+      '-password -savedPosts'
+    );
+
+    return res.status(200).json({ status: 'success', data: users.followers });
+  } catch (err) {
+    return res.status(500).json({ message: 'Something error', status: err.message });
+  }
+};
+
+module.exports.updateProfile = async (req, res, next) => {
+  try {
+    const user = req.user;
+    const { username, fullname, website, bio, email, avatar } = req.body;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+module.exports.changePassword = async (req, res, next) => {};
