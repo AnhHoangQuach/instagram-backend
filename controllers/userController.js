@@ -75,7 +75,7 @@ module.exports.followUser = async (req, res, next) => {
       mySelf.following.filter((following) => following.user.toString() === userId).length > 0;
 
     if (isFollowing) {
-      return res.status(401).send('User Already Followed');
+      return res.status(401).json({ status: 'error', message: 'User Already Followed' });
     }
 
     await mySelf.following.unshift({ user: userId });
@@ -104,7 +104,7 @@ module.exports.unfollowUser = async (req, res, next) => {
     });
 
     if (!user || !userToUnfollow) {
-      return res.status(404).send('User not found');
+      return res.status(404).json({ status: 'error', message: 'User not found' });
     }
 
     const isFollowing =
@@ -112,7 +112,7 @@ module.exports.unfollowUser = async (req, res, next) => {
       mySelf.following.filter((following) => following.user.toString() === userId).length === 0;
 
     if (isFollowing) {
-      return res.status(401).send('User Not Followed before');
+      return res.status(401).json({ status: 'error', message: 'User Already Followed' });
     }
 
     const removeFollowing = await mySelf.following
