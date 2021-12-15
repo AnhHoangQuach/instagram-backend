@@ -1,7 +1,14 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
 const Follower = require('../models/Follower');
-const ObjectId = require('mongoose').Types.ObjectId;
+const cloudinary = require('cloudinary').v2;
+const { formatCloudinaryUrl } = require('../utils/helpers');
+const {
+  validateEmail,
+  validateFullName,
+  validateUsername,
+  validatePassword,
+} = require('../utils/validation');
 
 module.exports.getUser = async (req, res, next) => {
   const { userId } = req.params;
@@ -67,7 +74,7 @@ module.exports.bookmarkPost = async (req, res, next) => {
       return res.status(200).json({ status: 'success', message: 'Bookmarked post successfully' });
     }
   } catch (err) {
-    return res.status(500).send({ error: err.message });
+    return res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
@@ -98,7 +105,7 @@ module.exports.followUser = async (req, res, next) => {
 
     return res.status(200).json({ status: 'success', message: 'Follow Success' });
   } catch (err) {
-    return res.status(500).json({ message: 'Something error', status: err.message });
+    return res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
@@ -143,7 +150,7 @@ module.exports.unfollowUser = async (req, res, next) => {
 
     return res.status(200).send({ status: 'success', message: 'Unfollow Success' });
   } catch (error) {
-    return res.status(500).json({ message: 'Something error', status: err.message });
+    return res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
@@ -157,7 +164,7 @@ module.exports.getFollowing = async (req, res, next) => {
 
     return res.status(200).json({ status: 'success', data: users.following });
   } catch (err) {
-    return res.status(500).json({ message: 'Something error', status: err.message });
+    return res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
@@ -171,17 +178,37 @@ module.exports.getFollowers = async (req, res, next) => {
 
     return res.status(200).json({ status: 'success', data: users.followers });
   } catch (err) {
-    return res.status(500).json({ message: 'Something error', status: err.message });
+    return res.status(500).json({ status: 'error', message: err.message });
   }
 };
 
 module.exports.updateProfile = async (req, res, next) => {
   try {
     const user = req.user;
-    const { username, fullname, website, bio, email, avatar } = req.body;
+    const { username, fullname, website, bio, email } = req.body;
+    const userDocument = await User.findOne({ _id: user._id });
+    if (username) {
+      const usernameError = validateUsername(username);
+      if (usernameError) return res.status(400).json({ status: 'error', message: usernameError });
+      if (username === user.username) {
+        return res
+          .status(400)
+          .json({ status: 'error', message: 'Please choose another username.' });
+      }
+      userDocument.username = username;
+    }
+    if (fullname) {
+      const fullNameError = validateFullName(fullname);
+      if (fullNameError) return res.status(400).json({ status: 'error', message: fullNameError });
+      userDocument.fullname = fullname;
+    }
+    await userDocument.save();
+    return res.status(200).json({ status: 'success', message: 'Update Profile Success' });
   } catch (err) {
-    console.log(err);
+    return res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+module.exports.changeAvatar = async (req, res, next) => {};
 
 module.exports.changePassword = async (req, res, next) => {};
