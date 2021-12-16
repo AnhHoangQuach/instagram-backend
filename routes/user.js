@@ -19,6 +19,8 @@ const {
   getFollowing,
   getFollowers,
   updateProfile,
+  changeAvatar,
+  changePassword,
 } = require('../controllers/userController');
 
 userRouter.get('/:userId', getUser);
@@ -33,6 +35,10 @@ userRouter.get('/:userId/following', getFollowing);
 
 userRouter.get('/:userId/followers', getFollowers);
 
-userRouter.post('/update', authMiddleware.protect, upload.single('avatar'), updateProfile);
+userRouter.put('/update', authMiddleware.protect, updateProfile);
+
+userRouter.put('/avatar', authMiddleware.protect, upload.single('avatar'), changeAvatar);
+
+userRouter.put('/password', authMiddleware.protect, changePassword);
 
 module.exports = userRouter;

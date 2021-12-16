@@ -2,12 +2,15 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const Follower = require('../models/Follower');
 const cloudinary = require('cloudinary').v2;
-const { formatCloudinaryUrl } = require('../utils/helpers');
+const bcrypt = require('bcrypt');
+const fs = require('fs');
 const {
   validateEmail,
   validateFullName,
   validateUsername,
   validatePassword,
+  validateWebsite,
+  validateBio,
 } = require('../utils/validation');
 
 module.exports.getUser = async (req, res, next) => {
@@ -185,6 +188,9 @@ module.exports.getFollowers = async (req, res, next) => {
 module.exports.updateProfile = async (req, res, next) => {
   try {
     const user = req.user;
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'You not logged in' });
+    }
     const { username, fullname, website, bio, email } = req.body;
     const userDocument = await User.findOne({ _id: user._id });
     if (username) {
@@ -202,6 +208,31 @@ module.exports.updateProfile = async (req, res, next) => {
       if (fullNameError) return res.status(400).json({ status: 'error', message: fullNameError });
       userDocument.fullname = fullname;
     }
+    if (website) {
+      const websiteError = validateWebsite(website);
+      if (websiteError) return res.status(400).json({ status: 'error', message: websiteError });
+      if (!website.includes('http://') && !website.includes('https://')) {
+        userDocument.website = 'https://' + website;
+      } else {
+        userDocument.website = website;
+      }
+    }
+    if (bio) {
+      const bioError = validateBio(bio);
+      if (bioError) return res.status(400).json({ status: 'error', message: bioError });
+      userDocument.bio = bio;
+    }
+    if (email) {
+      const emailError = validateEmail(email);
+      if (emailError) return res.status(400).send({ error: emailError });
+      // Make sure the email to update to is not the current one
+      if (email !== user.email) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser)
+          return res.status(400).json({ status: 'error', message: 'Please choose another email.' });
+        userDocument.email = email;
+      }
+    }
     await userDocument.save();
     return res.status(200).json({ status: 'success', message: 'Update Profile Success' });
   } catch (err) {
@@ -209,6 +240,61 @@ module.exports.updateProfile = async (req, res, next) => {
   }
 };
 
-module.exports.changeAvatar = async (req, res, next) => {};
+module.exports.changeAvatar = async (req, res, next) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(404).json({ status: 'error', message: 'You not logged in' });
+  }
 
-module.exports.changePassword = async (req, res, next) => {};
+  if (!req.file) {
+    return res
+      .status(400)
+      .json({ status: 'errror', message: 'Please provide the image to upload.' });
+  }
+
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+
+  try {
+    const response = await cloudinary.uploader.upload(req.file.path, {
+      width: 200,
+      height: 200,
+    });
+    fs.unlinkSync(req.file.path);
+
+    await User.updateOne({ _id: user._id }, { avatar: response.secure_url });
+    return res.status(200).json({ status: 'success', message: 'Update Avatar Success' });
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+module.exports.changePassword = async (req, res, next) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(404).json({ status: 'error', message: 'You not logged in' });
+  }
+
+  const { oldPassword, newPassword } = req.body;
+  try {
+    const userDocument = await User.findById(user._id);
+
+    const result = await bcrypt.compare(oldPassword, userDocument.password);
+    if (!result) {
+      return res.status('401').json({ status: 'error', message: 'Wrong password' });
+    }
+
+    const newPasswordError = validatePassword(newPassword);
+    if (newPasswordError)
+      return res.status(400).json({ status: 'error', message: newPasswordError });
+
+    userDocument.password = newPassword;
+    await userDocument.save();
+    return res.status(200).json({ status: 'success', message: 'Change Password Success' });
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+};
