@@ -2,6 +2,7 @@ const cloudinary = require('cloudinary').v2;
 const { formatCloudinaryUrl } = require('../utils/helpers');
 const Post = require('../models/Post');
 const ObjectId = require('mongoose').Types.ObjectId;
+const { retrieveComments } = require('./commentController');
 
 module.exports.createPost = async (req, res, next) => {
   const user = req.user;
@@ -79,8 +80,8 @@ module.exports.getPost = async (req, res, next) => {
         .status(404)
         .json({ status: 'error', message: 'Could not find a post with that id.' });
     }
-
-    res.status(200).json({ status: 'success', data: { post: post[0] } });
+    const comments = await retrieveComments(postId, 0);
+    res.status(200).json({ status: 'success', data: { post: post[0], comment: comments } });
   } catch (err) {
     return res.status(404).json({ status: 'error', message: err.message });
   }
