@@ -1,6 +1,7 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
 const Follower = require('../models/Follower');
+const ObjectId = require('mongoose').Types.ObjectId;
 const cloudinary = require('cloudinary').v2;
 const bcrypt = require('bcrypt');
 const fs = require('fs');
@@ -294,6 +295,79 @@ module.exports.changePassword = async (req, res, next) => {
     userDocument.password = newPassword;
     await userDocument.save();
     return res.status(200).json({ status: 'success', message: 'Change Password Success' });
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+module.exports.retrieveSuggestedUsers = async (req, res, next) => {
+  const { max } = req.params;
+  const user = req.user;
+  if (!user) {
+    return res.status(404).json({ status: 'error', message: 'You not logged in' });
+  }
+  try {
+    const users = await User.aggregate([
+      {
+        $match: { _id: { $ne: ObjectId(user._id) } },
+      },
+      {
+        $lookup: {
+          from: 'followers',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'followers',
+        },
+      },
+      {
+        $lookup: {
+          from: 'posts',
+          let: { userId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ['$user', '$$userId'],
+                },
+              },
+            },
+            {
+              $sort: { date: -1 },
+            },
+            {
+              $limit: 3,
+            },
+          ],
+          as: 'posts',
+        },
+      },
+      {
+        $unwind: '$followers',
+      },
+      {
+        $project: {
+          username: true,
+          fullName: true,
+          email: true,
+          avatar: true,
+          isFollowing: { $in: [user._id, '$followers.followers.user'] },
+          posts: true,
+        },
+      },
+      {
+        $match: { isFollowing: false },
+      },
+      {
+        $sample: { size: max ? Number(max) : 20 },
+      },
+      {
+        $sort: { posts: -1 },
+      },
+      {
+        $unset: ['isFollowing'],
+      },
+    ]);
+    return res.status(200).json({ status: 'success', data: { users } });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }

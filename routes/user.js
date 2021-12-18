@@ -21,9 +21,12 @@ const {
   updateProfile,
   changeAvatar,
   changePassword,
+  retrieveSuggestedUsers,
 } = require('../controllers/userController');
 
 userRouter.get('/:userId', getUser);
+
+userRouter.get('/suggested/:max?', authMiddleware.protect, retrieveSuggestedUsers);
 
 userRouter.post('/:postId/bookmark', authMiddleware.protect, bookmarkPost);
 

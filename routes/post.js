@@ -12,12 +12,22 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-const { createPost, getPost, getPosts } = require('../controllers/postController');
+const {
+  createPost,
+  getPost,
+  getPosts,
+  getFeedPosts,
+  votePost,
+} = require('../controllers/postController');
 
 postRouter.post('/create', authMiddleware.protect, upload.array('pictures', 10), createPost);
+
+postRouter.get('/feed', authMiddleware.protect, getFeedPosts);
 
 postRouter.get('/:postId', getPost);
 
 postRouter.get('/', getPosts);
+
+postRouter.post('/:postId', authMiddleware.protect, votePost);
 
 module.exports = postRouter;
