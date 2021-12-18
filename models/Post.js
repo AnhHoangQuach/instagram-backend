@@ -23,6 +23,7 @@ const PostSchema = new mongoose.Schema({
   },
   caption: String,
   hashtags: [{ type: String, lowercase: true }],
+  likes: [{ user: { type: mongoose.Schema.ObjectId, ref: 'User' } }],
   createdAt: {
     type: Date,
     default: Date.now,
