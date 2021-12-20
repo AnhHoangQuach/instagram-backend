@@ -166,7 +166,7 @@ module.exports.getFollowing = async (req, res, next) => {
       '-password -savedPosts'
     );
 
-    return res.status(200).json({ status: 'success', data: users.following });
+    return res.status(200).json({ status: 'success', data: { following: users.following } });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
@@ -180,7 +180,7 @@ module.exports.getFollowers = async (req, res, next) => {
       '-password -savedPosts'
     );
 
-    return res.status(200).json({ status: 'success', data: users.followers });
+    return res.status(200).json({ status: 'success', data: { followers: users.followers } });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
