@@ -215,15 +215,14 @@ module.exports.updateProfile = async (req, res, next) => {
       if (websiteError) return res.status(400).json({ status: 'error', message: websiteError });
       if (!website.includes('http://') && !website.includes('https://')) {
         userDocument.website = 'https://' + website;
-      } else {
-        userDocument.website = website;
       }
     }
+    userDocument.website = website;
     if (bio) {
       const bioError = validateBio(bio);
       if (bioError) return res.status(400).json({ status: 'error', message: bioError });
-      userDocument.bio = bio;
     }
+    userDocument.bio = bio;
     if (email) {
       const emailError = validateEmail(email);
       if (emailError) return res.status(400).send({ error: emailError });
