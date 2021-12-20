@@ -53,7 +53,7 @@ passport.use(
               password: '123456',
               avatar:
                 profile.photos[0].value ||
-                'https://res.cloudinary.com/instagram-cloud-store/image/upload/v1635824574/default_gwdper.jpg',
+                'https://res.cloudinary.com/instagram-cloud-store/image/upload/v1639994777/default_tk6vnk.jpg',
             });
 
             newUser.save((err) => {

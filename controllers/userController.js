@@ -197,7 +197,8 @@ module.exports.updateProfile = async (req, res, next) => {
     if (username) {
       const usernameError = validateUsername(username);
       if (usernameError) return res.status(400).json({ status: 'error', message: usernameError });
-      if (username === user.username) {
+      const findUser = await User.findOne({ username });
+      if (findUser.id !== user.id) {
         return res
           .status(400)
           .json({ status: 'error', message: 'Please choose another username.' });
