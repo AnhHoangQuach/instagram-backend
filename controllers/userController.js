@@ -192,13 +192,13 @@ module.exports.updateProfile = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ status: 'error', message: 'You not logged in' });
     }
-    const { username, fullname, website, bio, email } = req.body;
+    const { username, fullname, website, bio } = req.body;
     const userDocument = await User.findOne({ _id: user._id });
     if (username) {
       const usernameError = validateUsername(username);
       if (usernameError) return res.status(400).json({ status: 'error', message: usernameError });
       const findUser = await User.findOne({ username });
-      if (findUser.id !== user.id) {
+      if (findUser && findUser.id !== user.id) {
         return res
           .status(400)
           .json({ status: 'error', message: 'Please choose another username.' });
@@ -223,17 +223,6 @@ module.exports.updateProfile = async (req, res, next) => {
       if (bioError) return res.status(400).json({ status: 'error', message: bioError });
     }
     userDocument.bio = bio;
-    if (email) {
-      const emailError = validateEmail(email);
-      if (emailError) return res.status(400).send({ error: emailError });
-      // Make sure the email to update to is not the current one
-      if (email !== user.email) {
-        const existingUser = await User.findOne({ email });
-        if (existingUser)
-          return res.status(400).json({ status: 'error', message: 'Please choose another email.' });
-        userDocument.email = email;
-      }
-    }
     await userDocument.save();
     return res.status(200).json({ status: 'success', message: 'Update Profile Success' });
   } catch (err) {

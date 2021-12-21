@@ -283,7 +283,7 @@ module.exports.getFeedPosts = async (req, res, next) => {
       },
       {
         $addFields: {
-          commentData: {
+          comment: {
             comments: '$comments',
             commentCount: '$commentCount.count',
           },
