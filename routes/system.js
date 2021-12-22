@@ -3,6 +3,6 @@ const systemRouter = express.Router();
 
 const { search } = require('../controllers/systemController');
 
-systemRouter.post('/search', search);
+systemRouter.get('/search', search);
 
 module.exports = systemRouter;
