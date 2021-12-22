@@ -39,53 +39,13 @@ module.exports.search = async (req, res, next) => {
       },
     ]);
 
-    const posts = await Post.aggregate([
-      {
-        $match: {
-          hashtags: { $regex: new RegExp(keyword), $options: 'i' },
-        },
-      },
-      {
-        $lookup: {
-          from: 'comments',
-          let: { postId: '$_id' },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ['$post', '$$postId'],
-                },
-              },
-            },
-            {
-              $group: { _id: null, count: { $sum: 1 } },
-            },
-            {
-              $project: {
-                _id: false,
-              },
-            },
-          ],
-          as: 'commentCount',
-        },
-      },
-      {
-        $addFields: {
-          commentCount: '$commentCount.count',
-        },
-      },
-      { $sort: { likes: -1 } },
-      {
-        $project: {
-          _id: true,
-          commentCount: true,
-          likes: true,
-          images: true,
-        },
-      },
-    ]);
+    var result = await Post.find();
 
-    return res.status(200).json({ status: 'success', data: { users, posts } });
+    var hashtags = result
+      .map((post) => post.hashtags.filter((tag) => tag.indexOf(keyword) > -1))
+      .flat();
+
+    return res.status(200).json({ status: 'success', data: { users, hashtags } });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
