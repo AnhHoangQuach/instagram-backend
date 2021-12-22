@@ -13,8 +13,3 @@ module.exports.formatCloudinaryUrl = (url, size, thumb) => {
   const formattedUrl = splitUrl[0] + splitUrl[1];
   return formattedUrl;
 };
-
-module.exports.getHashTag = (value) => {
-  const result = value.match(/(^|\s)(#[a-z\d-]+)/g);
-  return result && result.map((item) => item.replace('#', ''));
-};

@@ -46,8 +46,41 @@ module.exports.search = async (req, res, next) => {
         },
       },
       {
+        $lookup: {
+          from: 'comments',
+          let: { postId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ['$post', '$$postId'],
+                },
+              },
+            },
+            {
+              $group: { _id: null, count: { $sum: 1 } },
+            },
+            {
+              $project: {
+                _id: false,
+              },
+            },
+          ],
+          as: 'commentCount',
+        },
+      },
+      {
+        $addFields: {
+          commentCount: '$commentCount.count',
+        },
+      },
+      { $sort: { likes: -1 } },
+      {
         $project: {
           _id: true,
+          commentCount: true,
+          likes: true,
+          images: true,
         },
       },
     ]);
