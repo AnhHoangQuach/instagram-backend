@@ -34,7 +34,7 @@ module.exports.search = async (req, res, next) => {
           _id: true,
           username: true,
           avatar: true,
-          fullName: true,
+          fullname: true,
         },
       },
     ]);
