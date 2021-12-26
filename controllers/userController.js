@@ -216,13 +216,13 @@ module.exports.updateProfile = async (req, res, next) => {
       if (!website.includes('http://') && !website.includes('https://')) {
         userDocument.website = 'https://' + website;
       }
-      userDocument.website = website;
     }
+    userDocument.website = website;
     if (bio) {
       const bioError = validateBio(bio);
       if (bioError) return res.status(400).json({ status: 'error', message: bioError });
-      userDocument.bio = bio;
     }
+    userDocument.bio = bio;
     await userDocument.save();
     return res.status(200).json({ status: 'success', message: 'Update Profile Success' });
   } catch (err) {
