@@ -362,7 +362,7 @@ module.exports.votePost = async (req, res, next) => {
 };
 
 module.exports.retrieveHashtagPosts = async (req, res, next) => {
-  const { hashtag, offset } = req.params;
+  const { hashtag } = req.params;
   try {
     const posts = await Post.aggregate([
       {
@@ -370,9 +370,6 @@ module.exports.retrieveHashtagPosts = async (req, res, next) => {
           posts: [
             {
               $match: { hashtags: hashtag },
-            },
-            {
-              $skip: Number(offset),
             },
             {
               $limit: 20,

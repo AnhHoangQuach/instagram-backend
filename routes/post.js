@@ -31,6 +31,6 @@ postRouter.get('/', getPosts);
 
 postRouter.post('/:postId', authMiddleware.protect, votePost);
 
-postRouter.get('/hashtag/:hashtag/:offset', retrieveHashtagPosts);
+postRouter.get('/hashtag/:hashtag', retrieveHashtagPosts);
 
 module.exports = postRouter;
