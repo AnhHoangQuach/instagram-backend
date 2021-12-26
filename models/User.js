@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const bcrypt = require('bcrypt');
 const UserSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -54,12 +53,6 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-});
-
-UserSchema.pre('save', async function (next) {
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 UserSchema.methods.getToken = function () {

@@ -5,6 +5,36 @@ const Follower = require('../models/Follower');
 const ObjectId = require('mongoose').Types.ObjectId;
 const { retrieveComments } = require('./commentController');
 
+const populatePostsPipeline = [
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'user',
+      foreignField: '_id',
+      as: 'user',
+    },
+  },
+  {
+    $lookup: {
+      from: 'comments',
+      localField: '_id',
+      foreignField: 'post',
+      as: 'comments',
+    },
+  },
+  {
+    $unwind: '$user',
+  },
+  {
+    $addFields: {
+      comments: { $size: '$comments' },
+    },
+  },
+  {
+    $unset: ['user.password', 'user.savedPosts'],
+  },
+];
+
 module.exports.createPost = async (req, res, next) => {
   const user = req.user;
   if (!user) {
@@ -326,6 +356,53 @@ module.exports.votePost = async (req, res, next) => {
 
       return res.status(200).json({ status: 'success', message: 'Like post successfully' });
     }
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+module.exports.retrieveHashtagPosts = async (req, res, next) => {
+  const { hashtag, offset } = req.params;
+  try {
+    const posts = await Post.aggregate([
+      {
+        $facet: {
+          posts: [
+            {
+              $match: { hashtags: hashtag },
+            },
+            {
+              $skip: Number(offset),
+            },
+            {
+              $limit: 20,
+            },
+            ...populatePostsPipeline,
+          ],
+          postCount: [
+            {
+              $match: { hashtags: hashtag },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: '$postCount',
+      },
+      {
+        $addFields: {
+          postCount: '$postCount.count',
+        },
+      },
+    ]);
+
+    return res.status(200).json({ status: 'success', data: { posts } });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }

@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const Follower = require('../models/Follower');
-
+const bcrypt = require('bcrypt');
 const {
   validateEmail,
   validateFullName,
@@ -28,7 +28,9 @@ module.exports.signup = async (req, res) => {
     return res.status(400).json({ status: 'fail', message: 'Email has already been registered' });
 
   try {
-    const user = await User.create({ username, fullname, email, password });
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+    const user = await User.create({ username, fullname, email, password: passwordHash });
     const token = user.getToken();
     await new Follower({ user: user._id, followers: [], following: [] }).save();
     res.status(200).json({ status: 'success', data: { token } });

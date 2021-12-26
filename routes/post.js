@@ -18,6 +18,7 @@ const {
   getPosts,
   getFeedPosts,
   votePost,
+  retrieveHashtagPosts,
 } = require('../controllers/postController');
 
 postRouter.post('/create', authMiddleware.protect, upload.array('pictures', 10), createPost);
@@ -29,5 +30,7 @@ postRouter.get('/:postId', getPost);
 postRouter.get('/', getPosts);
 
 postRouter.post('/:postId', authMiddleware.protect, votePost);
+
+postRouter.get('/hashtag/:hashtag/:offset', retrieveHashtagPosts);
 
 module.exports = postRouter;

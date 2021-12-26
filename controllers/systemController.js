@@ -2,12 +2,12 @@ const User = require('../models/User');
 const Post = require('../models/Post');
 
 module.exports.search = async (req, res, next) => {
-  const { keyword } = req.query;
+  const { keywords } = req.query;
   try {
     const users = await User.aggregate([
       {
         $match: {
-          username: { $regex: new RegExp(keyword), $options: 'i' },
+          username: { $regex: new RegExp(keywords), $options: 'i' },
         },
       },
       {
@@ -41,9 +41,11 @@ module.exports.search = async (req, res, next) => {
 
     var result = await Post.find();
 
-    var hashtags = result
-      .map((post) => post.hashtags.filter((tag) => tag.indexOf(keyword) > -1))
-      .flat();
+    var hashtags = [
+      ...new Set(
+        result.map((post) => post.hashtags.filter((tag) => tag.indexOf(keywords) > -1)).flat()
+      ),
+    ];
 
     return res.status(200).json({ status: 'success', data: { users, hashtags } });
   } catch (err) {
