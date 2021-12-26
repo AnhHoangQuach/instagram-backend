@@ -402,7 +402,7 @@ module.exports.retrieveHashtagPosts = async (req, res, next) => {
       },
     ]);
 
-    return res.status(200).json({ status: 'success', data: { posts } });
+    return res.status(200).json({ status: 'success', data: posts[0] });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
