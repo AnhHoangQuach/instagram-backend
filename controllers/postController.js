@@ -233,7 +233,7 @@ module.exports.getFeedPosts = async (req, res, next) => {
           $or: [{ user: { $in: following } }, { user: ObjectId(user._id) }],
         },
       },
-      { $sort: { date: -1 } },
+      { $sort: { createdAt: -1 } },
       {
         $lookup: {
           from: 'users',
@@ -319,6 +319,41 @@ module.exports.getFeedPosts = async (req, res, next) => {
       },
       {
         $unset: [...unwantedUserFields, 'comments', 'commentCount'],
+      },
+      { $skip: parseInt(page - 1) * parseInt(limit) },
+      { $limit: parseInt(limit) },
+    ]);
+
+    return res.status(200).json({ status: 'success', data: { posts } });
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+module.exports.getExplorePosts = async (req, res, next) => {
+  const user = req.user;
+  const { page, limit } = req.query;
+  if (parseInt(page) == 0) {
+    return res.status(404).json({ status: 'error', message: 'Page number not zero' });
+  }
+  if (!user) {
+    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+  }
+  try {
+    const followingDocument = await Follower.findOne({ user: user._id });
+    if (!followingDocument) {
+      return res.status(404).send({ error: 'Could not find any posts.' });
+    }
+    const following = followingDocument.following.map((following) => following.user);
+    const posts = await Post.aggregate([
+      {
+        $match: {
+          user: { $nin: [ObjectId(user._id), ...following] },
+        },
+      },
+      ...populatePostsPipeline,
+      {
+        $sort: { likes: -1 },
       },
       { $skip: parseInt(page - 1) * parseInt(limit) },
       { $limit: parseInt(limit) },

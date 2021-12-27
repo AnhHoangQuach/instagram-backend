@@ -19,11 +19,14 @@ const {
   getFeedPosts,
   votePost,
   retrieveHashtagPosts,
+  getExplorePosts,
 } = require('../controllers/postController');
 
 postRouter.post('/create', authMiddleware.protect, upload.array('pictures', 10), createPost);
 
 postRouter.get('/feed', authMiddleware.protect, getFeedPosts);
+
+postRouter.get('/explore', authMiddleware.protect, getExplorePosts);
 
 postRouter.get('/:postId', getPost);
 
