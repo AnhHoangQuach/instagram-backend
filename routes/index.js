@@ -24,6 +24,6 @@ apiRouter.use('/system', systemRouter);
 
 apiRouter.use('/chat', chatRouter);
 
-apiRouter.use('/chat', notificationRouter);
+apiRouter.use('/notification', notificationRouter);
 
 module.exports = apiRouter;
