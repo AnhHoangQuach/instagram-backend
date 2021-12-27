@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Follower = require('../models/Follower');
+const Chat = require('../models/Chat');
 const bcrypt = require('bcrypt');
 const {
   validateEmail,
@@ -33,6 +34,7 @@ module.exports.signup = async (req, res) => {
     const user = await User.create({ username, fullname, email, password: passwordHash });
     const token = user.getToken();
     await new Follower({ user: user._id, followers: [], following: [] }).save();
+    await new Chat({ user: user._id, chats: [] }).save();
     res.status(200).json({ status: 'success', data: { token } });
   } catch (err) {
     return res.status(503).json({ message: 'Service error. Please try again later' });
@@ -55,6 +57,12 @@ module.exports.login = async (req, res) => {
       return res.status(401).json({ status: 'error', message: 'Email or password is incorrect' });
 
     const token = user.getToken();
+
+    const chat = await Chat.findOne({ user: user._id });
+    if (!chat) {
+      await new Chat({ user: user._id, chats: [] }).save();
+    }
+
     return res.status(200).json({ status: 'success', data: { token } });
   } catch (err) {
     return res.status(503).json({ message: 'Service error. Please try again later' });
