@@ -234,8 +234,6 @@ module.exports.getFeedPosts = async (req, res, next) => {
         },
       },
       { $sort: { date: -1 } },
-      { $skip: parseInt(page - 1) * parseInt(limit) },
-      { $limit: parseInt(limit) },
       {
         $lookup: {
           from: 'users',
@@ -322,6 +320,8 @@ module.exports.getFeedPosts = async (req, res, next) => {
       {
         $unset: [...unwantedUserFields, 'comments', 'commentCount'],
       },
+      { $skip: parseInt(page - 1) * parseInt(limit) },
+      { $limit: parseInt(limit) },
     ]);
 
     return res.status(200).json({ status: 'success', data: { posts } });
