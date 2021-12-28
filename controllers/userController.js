@@ -17,11 +17,7 @@ const {
 module.exports.getUser = async (req, res, next) => {
   const { userId } = req.params;
   try {
-    const user = await User.findOne({ _id: userId })
-      .select('-password')
-      .populate({ path: 'savedPosts' })
-      .lean()
-      .exec();
+    const user = await User.findOne({ _id: userId }).select('-password');
 
     if (!user) {
       return res
@@ -29,12 +25,28 @@ module.exports.getUser = async (req, res, next) => {
         .send({ status: 'error', message: 'Could not find a user with that id.' });
     }
 
+    const savedPosts = await Post.aggregate([
+      { $match: { _id: { $in: user.savedPosts } } },
+      {
+        $lookup: {
+          from: 'comments',
+          localField: '_id',
+          foreignField: 'post',
+          as: 'comments',
+        },
+      },
+      {
+        $addFields: { comments: { $size: '$comments' } },
+      },
+    ]);
+
     const profileFollowStats = await Follower.findOne({ user: userId });
 
     res.status(200).json({
       status: 'success',
       data: {
         user,
+        savedPosts,
         followersLength:
           profileFollowStats.followers.length > 0 ? profileFollowStats.followers.length : 0,
 
