@@ -1,3 +1,5 @@
+const Chat = require('../models/Chat');
+
 /**
  * Formats a cloudinary thumbnail url with a specified size
  * @function formatCloudinaryUrl
@@ -12,4 +14,20 @@ module.exports.formatCloudinaryUrl = (url, size, thumb) => {
   }${thumb && ',c_thumb'}/`;
   const formattedUrl = splitUrl[0] + splitUrl[1];
   return formattedUrl;
+};
+
+module.exports.loadMessages = async (userId, messagesWith) => {
+  try {
+    const user = await Chat.findOne({ user: userId }).populate('chats.messagesWith');
+
+    const chat = user.chats.find((chat) => chat.messagesWith._id.toString() === messagesWith);
+
+    if (!chat) {
+      return { error: 'No chat found' };
+    }
+
+    return { chat };
+  } catch (error) {
+    return { error };
+  }
 };

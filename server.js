@@ -11,6 +11,10 @@ const server = http.createServer(app);
 const { Server } = require('socket.io');
 const io = new Server(server);
 
+//require use for socket
+
+const { loadMessages } = require('./utils/helpers');
+
 //model
 const User = require('./models/User');
 
@@ -73,7 +77,12 @@ passport.use(
 
 //socket io
 io.on('connection', (socket) => {
-  console.log('user connected');
+  console.log('Socket start working');
+  socket.on('load-messages', async ({ userId, messagesWith }) => {
+    const { chat, error } = await loadMessages(userId, messagesWith);
+
+    !error ? io.emit('messages-loaded', { chat }) : io.emit('no-chat-found');
+  });
 });
 
 server.listen(PORT, () => {
