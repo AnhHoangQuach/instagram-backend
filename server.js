@@ -81,7 +81,7 @@ io.on('connection', (socket) => {
   socket.on('load-messages', async ({ userId, messagesWith }) => {
     const { chat, error } = await loadMessages(userId, messagesWith);
 
-    !error ? io.emit('messages-loaded', { chat }) : io.emit('no-chat-found');
+    !error ? socket.emit('messages-loaded', { chat }) : socket.emit('no-chat-found');
   });
 });
 
