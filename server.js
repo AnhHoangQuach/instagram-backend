@@ -6,6 +6,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server);
 
 //model
 const User = require('./models/User');
@@ -67,6 +71,11 @@ passport.use(
   )
 );
 
-app.listen(PORT, () => {
+//socket io
+io.on('connection', (socket) => {
+  console.log('user connected');
+});
+
+server.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
 });
