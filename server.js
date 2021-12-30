@@ -12,8 +12,8 @@ const { Server } = require('socket.io');
 const io = new Server(server);
 
 //require use for socket
-
-const { loadMessages } = require('./utils/helpers');
+const { addUser, removeUser, findConnectedUser } = require('./utils/room');
+const { loadMessages, sendMsg, deleteMsg } = require('./utils/helpers');
 
 //model
 const User = require('./models/User');
@@ -78,11 +78,42 @@ passport.use(
 //socket io
 io.on('connection', (socket) => {
   console.log('Socket start working');
-  socket.on('load-messages', async ({ userId, messagesWith }) => {
-    const { chat, error } = await loadMessages(userId, messagesWith);
+  socket.on('join', async ({ userId }) => {
+    const users = await addUser(userId, socket.id);
+    console.log(users);
 
-    !error ? socket.emit('messages-loaded', { chat }) : socket.emit('no-chat-found');
+    setInterval(() => {
+      socket.emit('connected-users', {
+        users: users.filter((user) => user.userId !== userId),
+      });
+    }, 10000);
   });
+
+  socket.on('load-messages', async ({ userId, messagesWith }) => {
+    const { data, status } = await loadMessages(userId, messagesWith);
+
+    status !== 'error' ? socket.emit('messages-loaded', { data }) : socket.emit('no-chat-found');
+  });
+
+  socket.on('send-new-msg', async ({ userId, msgSendToUserId, msg }) => {
+    const { status, data } = await sendMsg(userId, msgSendToUserId, msg);
+    const receiverSocket = findConnectedUser(msgSendToUserId);
+
+    if (receiverSocket) {
+      // WHEN YOU WANT TO SEND MESSAGE TO A PARTICULAR SOCKET
+      io.to(receiverSocket.socketId).emit('new-msg-received', { data });
+    }
+
+    status !== 'error' && socket.emit('msg-sent', { data });
+  });
+
+  socket.on('delete-msg', async ({ userId, messagesWith, messageId }) => {
+    const { status } = await deleteMsg(userId, messagesWith, messageId);
+
+    if (status === 'success') socket.emit('msg-deleted');
+  });
+
+  socket.on('disconnect', () => removeUser(socket.id));
 });
 
 server.listen(PORT, () => {
