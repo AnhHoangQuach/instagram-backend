@@ -7,12 +7,12 @@ module.exports.getChats = async (req, res, next) => {
 
   try {
     let chatsToBeSent = [];
-    if (user.chats.length > 0) {
+    if (chatUser.chats.length > 0) {
       chatsToBeSent = await chatUser.chats.map((chat) => ({
         messagesWith: chat.messagesWith._id,
         username: chat.messagesWith.username,
         avatar: chat.messagesWith.avatar,
-        lastMessage: chat.messagesWith[chat.messages.length - 1],
+        lastMessage: chat.messages[chat.messages.length - 1],
         date: chat.messages[chat.messages.length - 1].date,
       }));
     }

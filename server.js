@@ -113,7 +113,10 @@ io.on('connection', (socket) => {
     if (status === 'success') socket.emit('msg-deleted');
   });
 
-  socket.on('disconnect', () => removeUser(socket.id));
+  socket.on('disconnect', () => {
+    console.log(`Remover user ${socket.id}`);
+    removeUser(socket.id);
+  });
 });
 
 server.listen(PORT, () => {
