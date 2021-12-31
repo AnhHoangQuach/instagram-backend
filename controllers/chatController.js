@@ -13,7 +13,7 @@ module.exports.getChats = async (req, res, next) => {
         username: chat.messagesWith.username,
         avatar: chat.messagesWith.avatar,
         lastMessage: chat.messages[chat.messages.length - 1],
-        date: chat.messages[chat.messages.length - 1].date,
+        createdAt: chat.messages[chat.messages.length - 1].createdAt,
       }));
     }
     return res.status(200).json({ status: 'success', data: { messages: chatsToBeSent } });
