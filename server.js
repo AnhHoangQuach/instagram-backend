@@ -84,7 +84,7 @@ io.on('connection', (socket) => {
       socket.emit('connected-users', {
         users: users.filter((user) => user.userId !== userId),
       });
-    }, 10000);
+    }, 5000);
   });
 
   socket.on('load-messages', async ({ userId, messagesWith }) => {
