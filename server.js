@@ -80,13 +80,11 @@ io.on('connection', (socket) => {
   console.log('Socket start working');
   socket.on('join', async ({ userId }) => {
     const users = await addUser(userId, socket.id);
-    console.log(users);
-
     setInterval(() => {
       socket.emit('connected-users', {
         users: users.filter((user) => user.userId !== userId),
       });
-    }, 10000);
+    }, 5000);
   });
 
   socket.on('load-messages', async ({ userId, messagesWith }) => {
@@ -113,7 +111,10 @@ io.on('connection', (socket) => {
     if (status === 'success') socket.emit('msg-deleted');
   });
 
-  socket.on('disconnect', () => removeUser(socket.id));
+  socket.on('disconnect', () => {
+    console.log(`Remover user ${socket.id}`);
+    removeUser(socket.id);
+  });
 });
 
 server.listen(PORT, () => {

@@ -44,7 +44,8 @@ module.exports.sendMsg = async (userId, msgSendToUserId, msg) => {
       sender: userId,
       receiver: msgSendToUserId,
       msg,
-      date: Date.now(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     };
 
     const previousChat = user.chats.find(
