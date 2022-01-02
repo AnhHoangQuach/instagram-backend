@@ -3,7 +3,9 @@ const Chat = require('../models/Chat');
 module.exports.getChats = async (req, res, next) => {
   const user = req.user;
 
-  const chatUser = await Chat.findOne({ user: user._id }).populate('chats.messagesWith');
+  const chatUser = await Chat.findOne({ user: user._id }).populate('chats.messagesWith', {
+    sort: { createdAt: -1 },
+  });
 
   try {
     let chatsToBeSent = [];
