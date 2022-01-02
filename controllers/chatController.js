@@ -3,9 +3,7 @@ const Chat = require('../models/Chat');
 module.exports.getChats = async (req, res, next) => {
   const user = req.user;
 
-  const chatUser = await Chat.findOne({ user: user._id }).populate('chats.messagesWith', {
-    sort: { createdAt: -1 },
-  });
+  const chatUser = await Chat.findOne({ user: user._id }).populate('chats.messagesWith');
 
   try {
     let chatsToBeSent = [];
@@ -18,6 +16,10 @@ module.exports.getChats = async (req, res, next) => {
         createdAt: chat.messages[chat.messages.length - 1].createdAt,
       }));
     }
+
+    chatsToBeSent.sort((a, b) => {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
     return res.status(200).json({ status: 'success', data: { messages: chatsToBeSent } });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
