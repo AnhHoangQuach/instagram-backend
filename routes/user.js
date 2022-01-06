@@ -22,6 +22,7 @@ const {
   changeAvatar,
   changePassword,
   retrieveSuggestedUsers,
+  getStories,
 } = require('../controllers/userController');
 
 userRouter.get('/:userId', getUser);
@@ -37,6 +38,8 @@ userRouter.put('/:userId/unfollow', authMiddleware.protect, unfollowUser);
 userRouter.get('/:userId/following', getFollowing);
 
 userRouter.get('/:userId/followers', getFollowers);
+
+userRouter.get('/:userId/stories', getStories);
 
 userRouter.put('/update', authMiddleware.protect, updateProfile);
 

@@ -375,3 +375,25 @@ module.exports.retrieveSuggestedUsers = async (req, res, next) => {
     return res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+module.exports.getStories = async (req, res, next) => {
+  const stories = [];
+
+  try {
+    const { userId } = req.params;
+    const user = await Follower.findOne({ user: userId }).populate(
+      'followers.user',
+      '-password -savedPosts'
+    );
+
+    for (const ele of user.following) {
+      const user = await User.findOne({ _id: ele.user }).select('username avatar');
+      const posts = await Post.findOne({ user: ele.user }).sort({ createdAt: -1 }).limit(3);
+      stories.push({ user, posts });
+    }
+
+    return res.status(200).json({ status: 'success', data: { stories } });
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+};
