@@ -389,7 +389,9 @@ module.exports.getStories = async (req, res, next) => {
     for (const ele of user.following) {
       const user = await User.findOne({ _id: ele.user }).select('username avatar');
       const posts = await Post.find({ user: ele.user }).sort({ createdAt: -1 }).limit(3);
-      stories.push({ user, posts });
+      if (posts.length > 0) {
+        stories.push({ user, posts });
+      }
     }
 
     return res.status(200).json({ status: 'success', data: { stories } });
