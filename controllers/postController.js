@@ -42,7 +42,7 @@ module.exports.createPost = async (req, res, next) => {
   }
   const { caption, hashtags } = req.body;
   if (!req.files) {
-    return res.status(400).send({ error: 'Please provide the image to upload.' });
+    return res.status(400).send({ error: 'Please choose the image to upload.' });
   }
 
   cloudinary.config({
@@ -112,7 +112,7 @@ module.exports.getPost = async (req, res, next) => {
     if (post.length === 0) {
       return res
         .status(404)
-        .json({ status: 'error', message: 'Could not find a post with that id.' });
+        .json({ status: 'error', message: 'Cannot find a post with that id.' });
     }
     const comments = await retrieveComments(postId, 0);
     res.status(200).json({ status: 'success', data: { post: post[0], comment: comments } });
@@ -215,7 +215,7 @@ module.exports.getFeedPosts = async (req, res, next) => {
   try {
     const followingDocument = await Follower.findOne({ user: user._id });
     if (!followingDocument) {
-      return res.status(404).send({ error: 'Could not find any posts.' });
+      return res.status(404).send({ error: 'Cannot find any posts.' });
     }
     const following = followingDocument.following.map((following) => following.user);
 
@@ -342,7 +342,7 @@ module.exports.getExplorePosts = async (req, res, next) => {
   try {
     const followingDocument = await Follower.findOne({ user: user._id });
     if (!followingDocument) {
-      return res.status(404).send({ error: 'Could not find any posts.' });
+      return res.status(404).send({ error: 'Cannot find any posts.' });
     }
     const following = followingDocument.following.map((following) => following.user);
     const posts = await Post.aggregate([
@@ -374,7 +374,7 @@ module.exports.votePost = async (req, res, next) => {
   try {
     const post = await Post.findById(postId);
     if (!post) {
-      return res.status(404).send('No Post found');
+      return res.status(404).send('Post not found');
     }
 
     const isLiked = post.likes.filter((like) => like.user.toString() === user.id).length > 0;

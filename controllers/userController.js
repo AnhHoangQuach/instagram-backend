@@ -71,7 +71,7 @@ module.exports.bookmarkPost = async (req, res, next) => {
     if (!post) {
       return res
         .status(404)
-        .json({ status: 'error', message: 'Could not find a post with that id.' });
+        .json({ status: 'error', message: 'Cannot find a post with that id.' });
     }
 
     if (user.savedPosts.includes(postId)) {
@@ -119,7 +119,7 @@ module.exports.followUser = async (req, res, next) => {
     await userToFollow.followers.unshift({ user: user.id });
     await userToFollow.save();
 
-    return res.status(200).json({ status: 'success', message: 'Follow Success' });
+    return res.status(200).json({ status: 'success', message: 'Follow Successfully!' });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
@@ -164,7 +164,7 @@ module.exports.unfollowUser = async (req, res, next) => {
     await userToUnfollow.followers.splice(removeFollower, 1);
     await userToUnfollow.save();
 
-    return res.status(200).send({ status: 'success', message: 'Unfollow Success' });
+    return res.status(200).send({ status: 'success', message: 'Unfollow Successfully!' });
   } catch (error) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
@@ -236,7 +236,7 @@ module.exports.updateProfile = async (req, res, next) => {
     }
     userDocument.bio = bio;
     await userDocument.save();
-    return res.status(200).json({ status: 'success', message: 'Update Profile Success' });
+    return res.status(200).json({ status: 'success', message: 'Update Profile Successfully!' });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
@@ -268,7 +268,7 @@ module.exports.changeAvatar = async (req, res, next) => {
     fs.unlinkSync(req.file.path);
 
     await User.updateOne({ _id: user._id }, { avatar: response.secure_url });
-    return res.status(200).json({ status: 'success', message: 'Update Avatar Success' });
+    return res.status(200).json({ status: 'success', message: 'Update Avatar Successfully!' });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
