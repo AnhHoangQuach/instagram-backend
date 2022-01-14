@@ -3,7 +3,13 @@ const passport = require('passport');
 const authRouter = express.Router();
 const authMiddleware = require('../middlewares/auth');
 
-const { signup, login, getMe } = require('../controllers/authController');
+const {
+  signup,
+  login,
+  getMe,
+  resetPassword,
+  getVerifyCode,
+} = require('../controllers/authController');
 
 authRouter.post('/signup', signup);
 
@@ -22,4 +28,9 @@ authRouter.get(
 );
 
 authRouter.get('/me', authMiddleware.protect, getMe);
+
+authRouter.post('/reset-password', resetPassword);
+
+authRouter.get('/send-verify-code', getVerifyCode);
+
 module.exports = authRouter;
