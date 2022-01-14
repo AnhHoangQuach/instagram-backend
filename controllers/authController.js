@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Follower = require('../models/Follower');
 const Chat = require('../models/Chat');
+const VerifyCode = require('../models/VerifyCode');
 const bcrypt = require('bcrypt');
 const {
   validateEmail,
@@ -8,6 +9,8 @@ const {
   validateUsername,
   validatePassword,
 } = require('../utils/validation');
+const mailConfig = require('../utils/mail');
+const { checkVerifyCode, removeVerifyCode } = require('../utils/helpers');
 
 module.exports.signup = async (req, res) => {
   const { username, fullname, email, password } = req.body;
@@ -81,5 +84,81 @@ module.exports.getMe = (req, res) => {
     });
   } catch (err) {
     return res.status(401).json({ status: 'error', message: err.message });
+  }
+};
+
+module.exports.resetPassword = async (req, res) => {
+  try {
+    const { email, verifyCode, password } = req.body;
+
+    const { status, message } = await checkVerifyCode(verifyCode, email);
+    if (status === 'error') {
+      return res.status(400).json({ message });
+    }
+
+    const newPasswordError = validatePassword(password);
+    if (newPasswordError)
+      return res.status(400).json({ status: 'error', message: newPasswordError });
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    await User.updateOne({ email }, { password: passwordHash });
+
+    removeVerifyCode(email);
+    return res.status(200).json({ status: 'success', message: 'Change Password Successfully' });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+const generateVerifyCode = (numberOfDigits) => {
+  const n = parseInt(numberOfDigits);
+  const number = Math.floor(Math.random() * Math.pow(10, n)) + 1;
+  let numberStr = number.toString();
+  const l = numberStr.length;
+  for (let i = 0; i < 6 - l; ++i) {
+    numberStr = '0' + numberStr;
+  }
+  return numberStr;
+};
+
+module.exports.getVerifyCode = async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!Boolean(email)) {
+      return res.status(400).json({ message: 'Email is not exist' });
+    }
+
+    const isExist = await User.exists({ email });
+    if (!isExist) {
+      return res.status(400).json({ message: 'Email is not exist' });
+    }
+
+    const verifyCode = generateVerifyCode(6);
+
+    const mail = {
+      to: email,
+      subject: 'Hama Instagram - Code for change password',
+      html: mailConfig.htmlResetPassword(verifyCode),
+    };
+
+    await mailConfig.sendEmail(mail);
+    try {
+      // delete old code
+      await VerifyCode.deleteOne({ email });
+
+      await VerifyCode.create({
+        code: verifyCode,
+        email,
+        createdDate: new Date(),
+      });
+    } catch (error) {
+      return res.status(500).json({ status: 'error', message: error.message });
+    }
+
+    return res.status(200).json({ message: 'Code sent successfully. Please check your email' });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: error.message });
   }
 };

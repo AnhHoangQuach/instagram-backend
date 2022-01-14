@@ -1,4 +1,5 @@
 const Chat = require('../models/Chat');
+const VerifyCode = require('../models/VerifyCode');
 
 /**
  * Formats a cloudinary thumbnail url with a specified size
@@ -112,4 +113,39 @@ module.exports.deleteMsg = async (userId, messagesWith, messageId) => {
   } catch (error) {
     return { status: 'error', message: error.message };
   }
+};
+
+module.exports.checkVerifyCode = async (code = '', email = '') => {
+  try {
+    const item = await VerifyCode.findOne({ email });
+
+    if (!item) {
+      return { status: 'error', message: 'Please send the code to receive the verification code' };
+    }
+
+    if (item.code !== code) {
+      return { status: 'error', message: 'The verification code is incorrect' };
+    }
+
+    const d = new Date().getTime(),
+      createdDate = new Date(item.createdDate).getTime();
+
+    if (d - createdDate > 10 * 60 * 1000) {
+      return {
+        status: 'error',
+        message: 'The verification code has expired. Please to get another code',
+      };
+    }
+
+    return { status: 'success', message: 'valid' };
+  } catch (error) {
+    return {
+      status: 'error',
+      message: error.message,
+    };
+  }
+};
+
+module.exports.removeVerifyCode = async (email = '') => {
+  await VerifyCode.deleteOne({ email });
 };
