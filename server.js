@@ -18,7 +18,6 @@ const io = new Server(server, {
 
 //require use for socket
 const { addUser, removeUser, findConnectedUser } = require('./utils/room');
-const { createComment } = require('./controllers/commentController');
 const { loadMessages, sendMsg, deleteMsg } = require('./utils/helpers');
 
 //model
