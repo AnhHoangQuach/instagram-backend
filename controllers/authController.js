@@ -127,12 +127,12 @@ module.exports.getVerifyCode = async (req, res) => {
   try {
     const { email } = req.query;
     if (!Boolean(email)) {
-      return res.status(400).json({ message: 'Email is not exist' });
+      return res.status(400).json({ status: 'error', message: 'Email is not exist' });
     }
 
     const isExist = await User.exists({ email });
     if (!isExist) {
-      return res.status(400).json({ message: 'Email is not exist' });
+      return res.status(400).json({ status: 'error', message: 'Email is not exist' });
     }
 
     const verifyCode = generateVerifyCode(6);
@@ -157,7 +157,9 @@ module.exports.getVerifyCode = async (req, res) => {
       return res.status(500).json({ status: 'error', message: error.message });
     }
 
-    return res.status(200).json({ message: 'Code sent successfully. Please check your email' });
+    return res
+      .status(200)
+      .json({ status: 'success', message: 'Code sent successfully. Please check your email' });
   } catch (error) {
     return res.status(500).json({ status: 'error', message: error.message });
   }
