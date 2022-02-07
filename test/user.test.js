@@ -18,5 +18,20 @@ describe('User', () => {
   /*
    * Test the user
    */
-  describe('/GET user', () => {});
+  describe('/GET/:userId user', () => {
+    it('it should GET a user by the given id', (done) => {
+      let userId = '61d9d06b3b4b09676ac99de0';
+      chai
+        .request(server)
+        .get('/api/user/' + userId)
+        .end((err, res) => {
+          res.should.have.status(200);
+          res.body.should.be.a('object');
+          res.body.should.have.property('data');
+          res.body.data.user.should.have.property('email');
+          res.body.data.user.should.have.property('username');
+          done();
+        });
+    });
+  });
 });
