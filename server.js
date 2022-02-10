@@ -125,3 +125,5 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
 });
+
+module.exports = app; // for testing
