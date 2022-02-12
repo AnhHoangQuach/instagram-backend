@@ -20,6 +20,7 @@ const {
   votePost,
   retrieveHashtagPosts,
   getExplorePosts,
+  deletePost,
 } = require('../controllers/postController');
 
 postRouter.post('/create', authMiddleware.protect, upload.array('pictures', 10), createPost);
@@ -33,6 +34,8 @@ postRouter.get('/:postId', getPost);
 postRouter.get('/', getPosts);
 
 postRouter.post('/:postId', authMiddleware.protect, votePost);
+
+postRouter.delete('/:postId', authMiddleware.protect, deletePost);
 
 postRouter.get('/hashtag/:hashtag', retrieveHashtagPosts);
 

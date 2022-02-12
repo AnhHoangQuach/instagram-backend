@@ -6,7 +6,6 @@ const cloudinary = require('cloudinary').v2;
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const {
-  validateEmail,
   validateFullName,
   validateUsername,
   validatePassword,
@@ -69,9 +68,7 @@ module.exports.bookmarkPost = async (req, res, next) => {
   try {
     const post = await Post.findById(postId);
     if (!post) {
-      return res
-        .status(404)
-        .json({ status: 'error', message: 'Cannot find a post with that id.' });
+      return res.status(404).json({ status: 'error', message: 'Cannot find a post with that id.' });
     }
 
     if (user.savedPosts.includes(postId)) {
@@ -355,6 +352,7 @@ module.exports.retrieveSuggestedUsers = async (req, res, next) => {
           avatar: true,
           isFollowing: { $in: [user._id, '$followers.followers.user'] },
           posts: true,
+          createdAt: true,
         },
       },
       {

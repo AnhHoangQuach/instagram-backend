@@ -110,9 +110,7 @@ module.exports.getPost = async (req, res, next) => {
       },
     ]);
     if (post.length === 0) {
-      return res
-        .status(404)
-        .json({ status: 'error', message: 'Cannot find a post with that id.' });
+      return res.status(404).json({ status: 'error', message: 'Cannot find a post with that id.' });
     }
     const comments = await retrieveComments(postId, 0);
     res.status(200).json({ status: 'success', data: { post: post[0], comment: comments } });
@@ -437,5 +435,41 @@ module.exports.retrieveHashtagPosts = async (req, res, next) => {
     return res.status(200).json({ status: 'success', data: posts[0] });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+module.exports.deletePost = async (req, res, next) => {
+  const user = req.user;
+  const { postId } = req.params;
+  if (!user) {
+    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+  }
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json('Post not found');
+    }
+    if (post.user.toString() !== user.id) {
+      return res
+        .status(401)
+        .json({ status: 'error', message: 'You are not authorized to delete this post' });
+    }
+    await post.remove();
+    return res.status(200).json({ status: 'success', message: 'Post deleted successfully' });
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+module.exports.editPost = async (req, res, next) => {
+  const user = req.user;
+  const { postId } = req.params;
+  if (!user) {
+    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+  }
+
+  if (!postId) {
+    return res.status(404).json({ status: 'error', message: 'Need PostId to edit' });
   }
 };
