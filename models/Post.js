@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const Comment = require('./Comment');
-const ObjectId = require('mongoose').Types.ObjectId;
 
 const PostSchema = new mongoose.Schema({
   images: {

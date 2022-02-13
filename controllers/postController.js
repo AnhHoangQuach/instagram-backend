@@ -461,15 +461,3 @@ module.exports.deletePost = async (req, res, next) => {
     return res.status(500).json({ status: 'error', message: err.message });
   }
 };
-
-module.exports.editPost = async (req, res, next) => {
-  const user = req.user;
-  const { postId } = req.params;
-  if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
-  }
-
-  if (!postId) {
-    return res.status(404).json({ status: 'error', message: 'Need PostId to edit' });
-  }
-};
