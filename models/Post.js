@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Comment = require('./Comment');
 
 const PostSchema = new mongoose.Schema({
   images: {
@@ -32,6 +33,10 @@ const PostSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+PostSchema.post('remove', async (doc) => {
+  await Comment.deleteMany({ post: doc._id });
 });
 
 const Post = mongoose.model('Post', PostSchema);
