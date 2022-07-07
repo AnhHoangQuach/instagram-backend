@@ -13,7 +13,7 @@ const mailConfig = require('../utils/mail');
 const { checkVerifyCode, removeVerifyCode } = require('../utils/helpers');
 
 module.exports.signup = async (req, res) => {
-  const { username, fullname, email, password } = req.body;
+  const { username, fullname, email, password, role } = req.body;
 
   const usernameError = validateUsername(username);
   if (usernameError) return res.status(400).json({ status: 'error', message: usernameError });
@@ -34,7 +34,7 @@ module.exports.signup = async (req, res) => {
   try {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
-    const user = await User.create({ username, fullname, email, password: passwordHash });
+    const user = await User.create({ username, fullname, email, password: passwordHash, role });
     const token = user.getToken();
     await new Follower({ user: user._id, followers: [], following: [] }).save();
     await new Chat({ user: user._id, chats: [] }).save();

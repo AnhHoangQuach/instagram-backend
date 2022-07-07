@@ -120,11 +120,11 @@ module.exports.getPost = async (req, res, next) => {
 };
 
 module.exports.getPosts = async (req, res, next) => {
-  const { page, limit, orderBy, user, hashtags } = req.query;
+  const { page, size, orderBy, user, hashtags } = req.query;
   const orderByValue = orderBy === 'desc' ? -1 : 1;
-  if (parseInt(page) == 0) {
-    return res.status(404).json({ status: 'error', message: 'Page number not zero' });
-  }
+  if (!page) page = 1;
+
+  if (!size) size = 10;
 
   let pipeline = [
     { $sort: { createdAt: orderByValue } },
@@ -176,8 +176,8 @@ module.exports.getPosts = async (req, res, next) => {
         as: 'comments',
       },
     },
-    { $skip: parseInt(page - 1) * parseInt(limit) },
-    { $limit: parseInt(limit) },
+    { $skip: parseInt(page - 1) * parseInt(size) },
+    { $limit: parseInt(size) },
   ];
 
   if (user) {
@@ -202,10 +202,11 @@ module.exports.getPosts = async (req, res, next) => {
 
 module.exports.getFeedPosts = async (req, res, next) => {
   const user = req.user;
-  const { page, limit } = req.query;
-  if (parseInt(page) == 0) {
-    return res.status(404).json({ status: 'error', message: 'Page number not zero' });
-  }
+  const { page, size } = req.query;
+  if (!page) page = 1;
+
+  if (!size) size = 10;
+
   if (!user) {
     return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
   }
@@ -318,8 +319,8 @@ module.exports.getFeedPosts = async (req, res, next) => {
       {
         $unset: [...unwantedUserFields, 'comments', 'commentCount'],
       },
-      { $skip: parseInt(page - 1) * parseInt(limit) },
-      { $limit: parseInt(limit) },
+      { $skip: parseInt(page - 1) * parseInt(size) },
+      { $limit: parseInt(size) },
     ]);
 
     return res.status(200).json({ status: 'success', data: { posts } });
@@ -330,10 +331,10 @@ module.exports.getFeedPosts = async (req, res, next) => {
 
 module.exports.getExplorePosts = async (req, res, next) => {
   const user = req.user;
-  const { page, limit } = req.query;
-  if (parseInt(page) == 0) {
-    return res.status(404).json({ status: 'error', message: 'Page number not zero' });
-  }
+  const { page, size } = req.query;
+  if (!page) page = 1;
+  if (!size) size = 10;
+
   if (!user) {
     return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
   }
@@ -353,8 +354,8 @@ module.exports.getExplorePosts = async (req, res, next) => {
       {
         $sort: { likes: -1 },
       },
-      { $skip: parseInt(page - 1) * parseInt(limit) },
-      { $limit: parseInt(limit) },
+      { $skip: parseInt(page - 1) * parseInt(size) },
+      { $limit: parseInt(size) },
     ]);
 
     return res.status(200).json({ status: 'success', data: { posts } });

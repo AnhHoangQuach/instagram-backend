@@ -7,6 +7,7 @@ const commentRouter = require('./comment');
 const systemRouter = require('./system');
 const chatRouter = require('./chat');
 const notificationRouter = require('./notification');
+const adminRouter = require('./admin');
 
 const apiRouter = express.Router();
 
@@ -25,5 +26,7 @@ apiRouter.use('/system', systemRouter);
 apiRouter.use('/chat', chatRouter);
 
 apiRouter.use('/notification', notificationRouter);
+
+apiRouter.use('/admin', adminRouter);
 
 module.exports = apiRouter;
