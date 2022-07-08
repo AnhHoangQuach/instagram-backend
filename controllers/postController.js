@@ -302,7 +302,7 @@ module.exports.getFeedPosts = async (req, res, next) => {
     const posts = await Post.aggregate([
       {
         $match: {
-          $or: [{ user: { $in: following } }, { user: ObjectId(user._id) }, { type: 'public' }],
+          $or: [{ user: { $in: following }, type: 'public' }, { user: ObjectId(user._id) }],
         },
       },
       { $sort: { createdAt: -1 } },
