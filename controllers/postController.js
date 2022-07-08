@@ -201,7 +201,6 @@ module.exports.getPosts = async (req, res, next) => {
 
   let pipeline = [
     { $sort: { createdAt: orderByValue } },
-    { $filter: { type: 'public' } },
     {
       $lookup: {
         from: 'users',
@@ -303,7 +302,7 @@ module.exports.getFeedPosts = async (req, res, next) => {
     const posts = await Post.aggregate([
       {
         $match: {
-          $or: [{ user: { $in: following } }, { user: ObjectId(user._id) }],
+          $or: [{ user: { $in: following } }, { user: ObjectId(user._id) }, { type: 'public' }],
         },
       },
       { $sort: { createdAt: -1 } },
@@ -422,6 +421,7 @@ module.exports.getExplorePosts = async (req, res, next) => {
       {
         $match: {
           user: { $nin: [ObjectId(user._id), ...following] },
+          type: 'public',
         },
       },
       ...populatePostsPipeline,
