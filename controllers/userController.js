@@ -62,7 +62,7 @@ module.exports.bookmarkPost = async (req, res, next) => {
   const { postId } = req.params;
   const user = req.user;
   if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
   }
 
   try {

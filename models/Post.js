@@ -24,6 +24,11 @@ const PostSchema = new mongoose.Schema({
   },
   caption: String,
   hashtags: [{ type: String, lowercase: true }],
+  type: {
+    type: String,
+    enum: ['public', 'private', 'share'],
+    default: 'public',
+  },
   likes: [{ user: { type: mongoose.Schema.ObjectId, ref: 'User' } }],
   createdAt: {
     type: Date,

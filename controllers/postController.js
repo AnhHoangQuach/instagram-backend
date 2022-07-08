@@ -38,11 +38,15 @@ const populatePostsPipeline = [
 module.exports.createPost = async (req, res, next) => {
   const user = req.user;
   if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
   }
-  const { caption, hashtags } = req.body;
+  const { caption, hashtags, type } = req.body;
   if (!req.files) {
     return res.status(400).send({ error: 'Please choose the image to upload.' });
+  }
+
+  if (!type) {
+    type = 'public';
   }
 
   cloudinary.config({
@@ -81,6 +85,7 @@ module.exports.createPost = async (req, res, next) => {
       user: user._id,
       caption,
       hashtags,
+      type,
     });
     res.status(200).json({ status: 'success', data: { post } });
   } catch (err) {
@@ -88,6 +93,74 @@ module.exports.createPost = async (req, res, next) => {
       status: 'error',
       message: err.message,
     });
+  }
+};
+
+module.exports.editPost = async (req, res, next) => {
+  const user = req.user;
+  const { postId } = req.params;
+
+  const post = await Post.findById(postId);
+
+  if (!user || post.user.toString() !== user.id) {
+    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
+  }
+
+  const { caption, hashtags, type } = req.body;
+
+  if (caption) {
+    post.caption = caption;
+  }
+
+  if (hashtags) {
+    post.hashtags = hashtags;
+  }
+
+  if (type) {
+    post.type = type;
+  }
+
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+
+  if (!req.files) {
+    try {
+      let pictureFiles = req.files;
+      //Check if files exist
+      if (!pictureFiles) return res.status(400).json({ message: 'No picture attached!' });
+      //map through images and create a promise array using cloudinary upload function
+      let multiplePicturePromise = pictureFiles.map((picture) =>
+        cloudinary.uploader.upload(picture.path, { resource_type: 'auto' })
+      );
+      // await all the cloudinary upload functions in promise.all, exactly where the magic happens
+      let imageResponses = await Promise.all(multiplePicturePromise);
+      const thumbnailUrl = imageResponses.map((item) => {
+        return formatCloudinaryUrl(
+          item.secure_url,
+          {
+            width: 400,
+            height: 400,
+          },
+          true
+        );
+      });
+
+      const imagesFormat = imageResponses.map(({ width, height, format, url, secure_url }) => {
+        return { width, height, format, url, secure_url };
+      });
+      post.images = imagesFormat;
+      post.thumbnail = thumbnailUrl;
+      await post.save();
+      res.status(200).json({ status: 'success', data: post });
+    } catch (err) {
+      res.status(500).json({
+        status: 'error',
+        message: err.message,
+      });
+    }
   }
 };
 
@@ -128,6 +201,7 @@ module.exports.getPosts = async (req, res, next) => {
 
   let pipeline = [
     { $sort: { createdAt: orderByValue } },
+    { $filter: { type: 'public' } },
     {
       $lookup: {
         from: 'users',
@@ -208,7 +282,7 @@ module.exports.getFeedPosts = async (req, res, next) => {
   if (!size) size = 10;
 
   if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
   }
 
   try {
@@ -336,7 +410,7 @@ module.exports.getExplorePosts = async (req, res, next) => {
   if (!size) size = 10;
 
   if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
   }
   try {
     const followingDocument = await Follower.findOne({ user: user._id });
@@ -368,7 +442,7 @@ module.exports.votePost = async (req, res, next) => {
   const { postId } = req.params;
   const user = req.user;
   if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
   }
   try {
     const post = await Post.findById(postId);
@@ -443,7 +517,7 @@ module.exports.deletePost = async (req, res, next) => {
   const user = req.user;
   const { postId } = req.params;
   if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
   }
 
   try {
@@ -451,7 +525,7 @@ module.exports.deletePost = async (req, res, next) => {
     if (!post) {
       return res.status(404).json('Post not found');
     }
-    if (post.user.toString() !== user.id) {
+    if (post.user.toString() !== user.id || user.role !== 'admin') {
       return res
         .status(401)
         .json({ status: 'error', message: 'You are not authorized to delete this post' });

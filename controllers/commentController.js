@@ -8,7 +8,7 @@ module.exports.createComment = async (req, res, next) => {
   const user = req.user;
 
   if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
   }
 
   if (!postId) {
@@ -45,7 +45,7 @@ module.exports.deleteComment = async (req, res, next) => {
   const user = req.user;
 
   if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You need to be logged in' });
+    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
   }
 
   if (!commentId) {
