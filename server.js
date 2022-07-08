@@ -65,9 +65,7 @@ passport.use(
               fullname: profile.name.familyName + ' ' + profile.name.givenName,
               username: 'userfb',
               password: '123456',
-              avatar:
-                profile.photos[0].value ||
-                'https://res.cloudinary.com/instagram-cloud-store/image/upload/v1639994777/default_tk6vnk.jpg',
+              avatar: profile.photos[0].value || '',
             });
 
             newUser.save((err) => {
