@@ -525,13 +525,14 @@ module.exports.deletePost = async (req, res, next) => {
     if (!post) {
       return res.status(404).json('Post not found');
     }
-    if (post.user.toString() !== user.id || user.role !== 'admin') {
+    if (post.user.toString() === user.id || user.role === 'admin') {
+      await post.remove();
+      return res.status(200).json({ status: 'success', message: 'Post deleted successfully' });
+    } else {
       return res
         .status(401)
         .json({ status: 'error', message: 'You are not authorized to delete this post' });
     }
-    await post.remove();
-    return res.status(200).json({ status: 'success', message: 'Post deleted successfully' });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
