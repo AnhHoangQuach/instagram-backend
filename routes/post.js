@@ -32,9 +32,9 @@ postRouter.get('/explore', authMiddleware.protect, getExplorePosts);
 
 postRouter.get('/:postId', getPost);
 
-postRouter.put('/:postId', authMiddleware.protect, editPost);
-
 postRouter.get('/', getPosts);
+
+postRouter.put('/:postId', authMiddleware.protect, editPost);
 
 postRouter.post('/:postId', authMiddleware.protect, votePost);
 

@@ -126,7 +126,7 @@ module.exports.editPost = async (req, res, next) => {
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
 
-  if (!req.files) {
+  if (req.files) {
     try {
       let pictureFiles = req.files;
       //Check if files exist
@@ -153,8 +153,6 @@ module.exports.editPost = async (req, res, next) => {
       });
       post.images = imagesFormat;
       post.thumbnail = thumbnailUrl;
-      await post.save();
-      res.status(200).json({ status: 'success', data: post });
     } catch (err) {
       res.status(500).json({
         status: 'error',
@@ -162,6 +160,9 @@ module.exports.editPost = async (req, res, next) => {
       });
     }
   }
+
+  await post.save();
+  res.status(200).json({ status: 'success' });
 };
 
 module.exports.getPost = async (req, res, next) => {
