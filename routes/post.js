@@ -30,11 +30,11 @@ postRouter.get('/feed', authMiddleware.protect, getFeedPosts);
 
 postRouter.get('/explore', authMiddleware.protect, getExplorePosts);
 
+postRouter.post('/edit/:postId', authMiddleware.protect, editPost);
+
 postRouter.get('/:postId', getPost);
 
 postRouter.get('/', getPosts);
-
-postRouter.put('/:postId', authMiddleware.protect, editPost);
 
 postRouter.post('/:postId', authMiddleware.protect, votePost);
 

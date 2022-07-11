@@ -98,12 +98,17 @@ module.exports.createPost = async (req, res, next) => {
 
 module.exports.editPost = async (req, res, next) => {
   const user = req.user;
+
   const { postId } = req.params;
 
   const post = await Post.findById(postId);
 
   if (!user || post.user.toString() !== user.id) {
     return res.status(404).json({ status: 'error', message: 'Unauthorized' });
+  }
+
+  if (!post) {
+    return res.status(404).send('Post not found');
   }
 
   const { caption, hashtags, type } = req.body;
