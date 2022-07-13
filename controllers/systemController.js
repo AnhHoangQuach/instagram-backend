@@ -60,3 +60,16 @@ module.exports.checkHealth = (req, res, next) => {
     return res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+module.exports.getSystem = async (req, res) => {
+  try {
+    const usersCount = await User.count({});
+    const postsCount = await Post.count({});
+
+    return res
+      .status(200)
+      .json({ status: 'success', data: { user_count: usersCount, post_count: postsCount } });
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+};
