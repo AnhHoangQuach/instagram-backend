@@ -46,7 +46,7 @@ describe('Account', () => {
         .post('/api/auth/login')
         .send(userEmailIncorrect)
         .end((err, res) => {
-          res.should.have.status(401);
+          res.should.have.status(400);
           res.body.should.be.a('object');
           res.body.should.have.property('status').eql('error');
           res.body.should.have.property('message').eql('Email or password is incorrect');
@@ -63,7 +63,7 @@ describe('Account', () => {
         .post('/api/auth/login')
         .send(userPasswordIncorrect)
         .end((err, res) => {
-          res.should.have.status(401);
+          res.should.have.status(400);
           res.body.should.be.a('object');
           res.body.should.have.property('status').eql('error');
           res.body.should.have.property('message').eql('Email or password is incorrect');

@@ -53,11 +53,11 @@ module.exports.login = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user)
-      return res.status(401).json({ status: 'error', message: 'Email or password is incorrect' });
+      return res.status(400).json({ status: 'error', message: 'Email or password is incorrect' });
 
     const isMatch = await user.checkPassword(password);
     if (!isMatch)
-      return res.status(401).json({ status: 'error', message: 'Email or password is incorrect' });
+      return res.status(400).json({ status: 'error', message: 'Email or password is incorrect' });
 
     const token = user.getToken();
 
@@ -83,7 +83,7 @@ module.exports.getMe = (req, res) => {
       status: 'success',
     });
   } catch (err) {
-    return res.status(401).json({ status: 'error', message: err.message });
+    return res.status(500).json({ status: 'error', message: err.message });
   }
 };
 

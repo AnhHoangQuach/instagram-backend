@@ -107,7 +107,7 @@ module.exports.followUser = async (req, res, next) => {
       mySelf.following.filter((following) => following.user.toString() === userId).length > 0;
 
     if (isFollowing) {
-      return res.status(401).json({ status: 'error', message: 'User Already Followed' });
+      return res.status(400).json({ status: 'error', message: 'User Already Followed' });
     }
 
     await mySelf.following.unshift({ user: userId });
@@ -144,7 +144,7 @@ module.exports.unfollowUser = async (req, res, next) => {
       mySelf.following.filter((following) => following.user.toString() === userId).length === 0;
 
     if (isFollowing) {
-      return res.status(401).json({ status: 'error', message: 'User Already Followed' });
+      return res.status(400).json({ status: 'error', message: 'User Already Followed' });
     }
 
     const removeFollowing = await mySelf.following
@@ -242,7 +242,7 @@ module.exports.updateProfile = async (req, res, next) => {
 module.exports.changeAvatar = async (req, res, next) => {
   const user = req.user;
   if (!user) {
-    return res.status(404).json({ status: 'error', message: 'You not logged in' });
+    return res.status(401).json({ status: 'error', message: 'You not logged in' });
   }
 
   if (!req.file) {
@@ -283,7 +283,7 @@ module.exports.changePassword = async (req, res, next) => {
 
     const result = await bcrypt.compare(oldPassword, userDocument.password);
     if (!result) {
-      return res.status('401').json({ status: 'error', message: 'Wrong password' });
+      return res.status('400').json({ status: 'error', message: 'Wrong password' });
     }
 
     const newPasswordError = validatePassword(newPassword);

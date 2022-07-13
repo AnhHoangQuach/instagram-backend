@@ -57,6 +57,6 @@ module.exports.isAdmin = async (req, res, next) => {
       }
     }
   } catch (err) {
-    return res.status(401).send({ status: 'error', message: err.message });
+    return res.status(500).send({ status: 'error', message: err.message });
   }
 };

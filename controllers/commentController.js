@@ -20,7 +20,7 @@ module.exports.createComment = async (req, res, next) => {
 
   if (content.length < 1) {
     return res
-      .status(401)
+      .status(400)
       .json({ status: 'error', message: 'Comment should be at least 1 character' });
   }
 
@@ -28,7 +28,7 @@ module.exports.createComment = async (req, res, next) => {
     const post = await Post.findById(postId);
     if (!post) {
       return res
-        .status(404)
+        .status(400)
         .send({ status: 'error', message: 'Could not find a post with that post id.' });
     }
     const comment = new Comment({ user: user._id, post: postId, content: content });
