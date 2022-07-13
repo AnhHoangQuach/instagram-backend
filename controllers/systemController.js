@@ -66,7 +66,9 @@ module.exports.getSystem = async (req, res) => {
     const usersCount = await User.count({});
     const postsCount = await Post.count({});
 
-    return res.status(200).json({ user_count: usersCount, post_count: postsCount });
+    return res
+      .status(200)
+      .json({ data: { user_count: usersCount, post_count: postsCount }, status: 'success' });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }

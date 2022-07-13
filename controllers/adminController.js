@@ -18,7 +18,14 @@ module.exports.fetchUsers = async (req, res) => {
       .skip(size * page - size)
       .limit(size);
 
-    return res.status(200).json({ status: 'success', data: users || [] });
+    return res.status(200).json({
+      data: {
+        items: users || [],
+        total: users.length,
+        pages: Math.floor(users.length / size) + 1,
+        currentPage: parseInt(page),
+      },
+    });
   } catch (err) {
     return res.status(503).json({ message: 'Service error. Please try again later' });
   }
@@ -43,7 +50,15 @@ module.exports.fetchPosts = async (req, res) => {
       .skip(size * page - size)
       .limit(size);
 
-    return res.status(200).json({ status: 'success', data: posts || [] });
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        items: posts || [],
+        total: posts.length,
+        pages: Math.floor(posts.length / size) + 1,
+        currentPage: parseInt(page),
+      },
+    });
   } catch (err) {
     return res.status(503).json({ message: 'Service error. Please try again later' });
   }
