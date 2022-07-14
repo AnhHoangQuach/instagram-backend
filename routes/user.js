@@ -23,6 +23,7 @@ const {
   changePassword,
   retrieveSuggestedUsers,
   getStories,
+  changeStatusUser,
 } = require('../controllers/userController');
 
 userRouter.get('/:userId', getUser);
@@ -46,5 +47,7 @@ userRouter.put('/update', authMiddleware.protect, updateProfile);
 userRouter.put('/avatar', authMiddleware.protect, upload.single('avatar'), changeAvatar);
 
 userRouter.put('/password', authMiddleware.protect, changePassword);
+
+userRouter.put('/change-status/:userId', authMiddleware.isAdmin, changeStatusUser);
 
 module.exports = userRouter;

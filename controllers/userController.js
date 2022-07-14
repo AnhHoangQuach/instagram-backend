@@ -400,3 +400,20 @@ module.exports.getStories = async (req, res, next) => {
     return res.status(500).json({ status: 'error', message: err.message });
   }
 };
+
+module.exports.changeStatusUser = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json('User not found');
+    }
+
+    user.isBlocked = !user.isBlocked;
+    await user.save();
+    return res.status(200).json({ status: 'success', message: 'Change status user successfully' });
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+};
