@@ -49,11 +49,14 @@ module.exports.isAdmin = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (decoded.exp > new Date().getTime() / 1000) {
       let user = await User.findById(decoded.id).select('-password');
-
       if (user.role === 'admin') {
         req.user = user;
         res.locals.isAuth = true;
         next();
+      } else {
+        return res
+          .status(401)
+          .send({ status: 'error', message: 'Unauthorized. You need login or sign up' });
       }
     } else {
       return res

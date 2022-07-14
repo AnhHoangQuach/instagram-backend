@@ -55,6 +55,13 @@ module.exports.login = async (req, res) => {
     if (!user)
       return res.status(400).json({ status: 'error', message: 'Email or password is incorrect' });
 
+    if (user.isBlocked) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Your account is blocked. Please contact the administrator',
+      });
+    }
+
     const isMatch = await user.checkPassword(password);
     if (!isMatch)
       return res.status(400).json({ status: 'error', message: 'Email or password is incorrect' });

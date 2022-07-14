@@ -1,8 +1,12 @@
 const User = require('../models/User');
 const Post = require('../models/Post');
+const Chat = require('../models/Chat');
 
 module.exports.fetchUsers = async (req, res) => {
-  var query = {};
+  var query = {
+    role: 'user',
+  };
+
   try {
     const { page, size, orderBy, email } = req.query;
     if (!page) page = 1;
@@ -59,6 +63,34 @@ module.exports.fetchPosts = async (req, res) => {
         currentPage: parseInt(page),
       },
     });
+  } catch (err) {
+    return res.status(503).json({ message: 'Service error. Please try again later' });
+  }
+};
+
+module.exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password)
+    return res.status(400).json({ status: 'error', message: 'Email and password are required' });
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user || user.role !== 'admin')
+      return res.status(400).json({ status: 'error', message: 'Email or password is incorrect' });
+
+    const isMatch = await user.checkPassword(password);
+    if (!isMatch)
+      return res.status(400).json({ status: 'error', message: 'Email or password is incorrect' });
+
+    const token = user.getToken();
+
+    const chat = await Chat.findOne({ user: user._id });
+    if (!chat) {
+      await new Chat({ user: user._id, chats: [] }).save();
+    }
+
+    return res.status(200).json({ status: 'success', data: { token } });
   } catch (err) {
     return res.status(503).json({ message: 'Service error. Please try again later' });
   }
