@@ -83,12 +83,9 @@ module.exports.getMe = (req, res) => {
   try {
     const { isAuth = false } = res.locals;
     if (!isAuth) {
-      return res.status(401).json({ status: 'error', message: 'Failed' });
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
-    res.status(200).json({
-      data: { user: req.user },
-      status: 'success',
-    });
+    return res.status(200).json({ data: { user: req.user }, status: 'success' });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
@@ -96,19 +93,19 @@ module.exports.getMe = (req, res) => {
 
 module.exports.resetPassword = async (req, res) => {
   try {
-    const { email, verifyCode, password } = req.body;
+    const { email, verifyCode, newPassword } = req.body;
 
     const { status, message } = await checkVerifyCode(verifyCode, email);
     if (status === 'error') {
-      return res.status(400).json({ message });
+      return res.status(400).json({ status, message });
     }
 
-    const newPasswordError = validatePassword(password);
+    const newPasswordError = validatePassword(newPassword);
     if (newPasswordError)
       return res.status(400).json({ status: 'error', message: newPasswordError });
 
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
 
     await User.updateOne({ email }, { password: passwordHash });
 
