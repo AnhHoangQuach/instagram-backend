@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Comment = require('./Comment');
+const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 
 const PostSchema = new mongoose.Schema({
   images: {
@@ -43,6 +44,8 @@ const PostSchema = new mongoose.Schema({
 PostSchema.post('remove', async (doc) => {
   await Comment.deleteMany({ post: doc._id });
 });
+
+PostSchema.plugin(aggregatePaginate);
 
 const Post = mongoose.model('Post', PostSchema);
 module.exports = Post;

@@ -4,6 +4,7 @@ const Post = require('../models/Post');
 const Follower = require('../models/Follower');
 const ObjectId = require('mongoose').Types.ObjectId;
 const { retrieveComments } = require('./commentController');
+const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 
 const populatePostsPipeline = [
   {
@@ -434,11 +435,11 @@ module.exports.getExplorePosts = async (req, res, next) => {
       {
         $sort: { likes: -1 },
       },
-      { $skip: parseInt(page - 1) * parseInt(size) },
-      { $limit: parseInt(size) },
     ]);
 
-    return res.status(200).json({ status: 'success', data: { posts } });
+    const results = await Post.aggregatePaginate(posts, { page, limit: size });
+
+    return res.status(200).json({ status: 'success', data: results });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
