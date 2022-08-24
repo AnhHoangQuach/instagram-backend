@@ -395,7 +395,7 @@ module.exports.getStories = async (req, res, next) => {
       }
     }
 
-    return res.status(200).json({ status: 'success', data: { stories } });
+    return res.status(200).json({ status: 'success', data: stories });
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }
