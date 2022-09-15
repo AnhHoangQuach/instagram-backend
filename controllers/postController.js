@@ -4,7 +4,6 @@ const Post = require('../models/Post');
 const Follower = require('../models/Follower');
 const ObjectId = require('mongoose').Types.ObjectId;
 const { retrieveComments } = require('./commentController');
-const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 
 const populatePostsPipeline = [
   {
@@ -38,17 +37,12 @@ const populatePostsPipeline = [
 
 module.exports.createPost = async (req, res, next) => {
   const user = req.user;
-  if (!user) {
-    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
-  }
-  const { caption, hashtags, type } = req.body;
-  if (!req.files) {
-    return res.status(400).send({ error: 'Please choose the image to upload.' });
-  }
+  if (!user) return res.status(404).json({ status: 'error', message: 'Unauthorized' });
 
-  if (!type) {
-    type = 'public';
-  }
+  const { caption, hashtags, type } = req.body;
+  if (!req.files) return res.status(400).send({ error: 'Please choose the image to upload.' });
+
+  if (!type) type = 'public';
 
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -80,6 +74,7 @@ module.exports.createPost = async (req, res, next) => {
     const imagesFormat = imageResponses.map(({ width, height, format, url, secure_url }) => {
       return { width, height, format, url, secure_url };
     });
+
     const post = await Post.create({
       images: imagesFormat,
       thumbnail: thumbnailUrl,
@@ -88,9 +83,10 @@ module.exports.createPost = async (req, res, next) => {
       hashtags,
       type,
     });
-    res.status(200).json({ status: 'success', data: { post } });
+
+    return res.status(200).json({ status: 'success', data: { post } });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       status: 'error',
       message: err.message,
     });
@@ -104,27 +100,18 @@ module.exports.editPost = async (req, res, next) => {
 
   const post = await Post.findById(postId);
 
-  if (!user || post.user.toString() !== user.id) {
+  if (!user || post.user.toString() !== user.id)
     return res.status(404).json({ status: 'error', message: 'Unauthorized' });
-  }
 
-  if (!post) {
-    return res.status(404).send('Post not found');
-  }
+  if (!post) return res.status(404).send('Post not found');
 
   const { caption, hashtags, type } = req.body;
 
-  if (caption) {
-    post.caption = caption;
-  }
+  if (caption) post.caption = caption;
 
-  if (hashtags) {
-    post.hashtags = hashtags;
-  }
+  if (hashtags) post.hashtags = hashtags;
 
-  if (type) {
-    post.type = type;
-  }
+  if (type) post.type = type;
 
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -160,7 +147,7 @@ module.exports.editPost = async (req, res, next) => {
       post.images = imagesFormat;
       post.thumbnail = thumbnailUrl;
     } catch (err) {
-      res.status(500).json({
+      return res.status(500).json({
         status: 'error',
         message: err.message,
       });
@@ -189,11 +176,11 @@ module.exports.getPost = async (req, res, next) => {
         $unset: ['user.password'],
       },
     ]);
-    if (post.length === 0) {
+    if (post.length === 0)
       return res.status(404).json({ status: 'error', message: 'Cannot find a post with that id.' });
-    }
+
     const comments = await retrieveComments(postId, 0);
-    res.status(200).json({ status: 'success', data: { post: post[0], comment: comments } });
+    return res.status(200).json({ status: 'success', data: { post: post[0], comment: comments } });
   } catch (err) {
     return res.status(404).json({ status: 'error', message: err.message });
   }
@@ -244,11 +231,9 @@ module.exports.getPosts = async (req, res, next) => {
               as: 'user',
             },
           },
-
           {
             $unwind: '$user',
           },
-
           {
             $unset: ['user.password', 'user.savedPosts', 'user.email', 'user.website', 'user.bio'],
           },
@@ -260,21 +245,19 @@ module.exports.getPosts = async (req, res, next) => {
     { $limit: parseInt(size) },
   ];
 
-  if (user) {
+  if (user)
     pipeline.unshift({
       $match: { user: ObjectId(user) },
     });
-  }
 
-  if (hashtags) {
+  if (hashtags)
     pipeline.push({
       $match: { hashtags: { $in: hashtags } },
     });
-  }
 
   try {
     const posts = await Post.aggregate(pipeline);
-    res.status(200).json({ status: 'success', data: { posts } });
+    return res.status(200).json({ status: 'success', data: { posts } });
   } catch (err) {
     return res.status(404).json({ status: 'error', message: err.message });
   }
@@ -293,9 +276,8 @@ module.exports.getFeedPosts = async (req, res, next) => {
 
   try {
     const followingDocument = await Follower.findOne({ user: user._id });
-    if (!followingDocument) {
-      return res.status(404).send({ error: 'Cannot find any posts.' });
-    }
+    if (!followingDocument) return res.status(404).send({ error: 'Cannot find any posts.' });
+
     const following = followingDocument.following.map((following) => following.user);
 
     // Fields to not include on the user object
@@ -415,14 +397,12 @@ module.exports.getExplorePosts = async (req, res, next) => {
   if (!page) page = 1;
   if (!size) size = 10;
 
-  if (!user) {
-    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
-  }
+  if (!user) return res.status(404).json({ status: 'error', message: 'Unauthorized' });
+
   try {
     const followingDocument = await Follower.findOne({ user: user._id });
-    if (!followingDocument) {
-      return res.status(404).send({ error: 'Cannot find any posts.' });
-    }
+    if (!followingDocument) return res.status(404).send({ error: 'Cannot find any posts.' });
+
     const following = followingDocument.following.map((following) => following.user);
     const posts = await Post.aggregate([
       {
@@ -448,14 +428,11 @@ module.exports.getExplorePosts = async (req, res, next) => {
 module.exports.votePost = async (req, res, next) => {
   const { postId } = req.params;
   const user = req.user;
-  if (!user) {
-    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
-  }
+  if (!user) return res.status(404).json({ status: 'error', message: 'Unauthorized' });
+
   try {
     const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).send('Post not found');
-    }
+    if (!post) return res.status(404).send('Post not found');
 
     const isLiked = post.likes.filter((like) => like.user.toString() === user.id).length > 0;
     if (isLiked) {
@@ -523,23 +500,19 @@ module.exports.retrieveHashtagPosts = async (req, res, next) => {
 module.exports.deletePost = async (req, res, next) => {
   const user = req.user;
   const { postId } = req.params;
-  if (!user) {
-    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
-  }
+  if (!user) return res.status(404).json({ status: 'error', message: 'Unauthorized' });
 
   try {
     const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).json('Post not found');
-    }
+    if (!post) return res.status(404).json('Post not found');
+
     if (post.user.toString() === user.id || user.role === 'admin') {
       await post.remove();
       return res.status(200).json({ status: 'success', message: 'Post deleted successfully' });
-    } else {
+    } else
       return res
         .status(401)
         .json({ status: 'error', message: 'You are not authorized to delete this post' });
-    }
   } catch (err) {
     return res.status(500).json({ status: 'error', message: err.message });
   }

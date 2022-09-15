@@ -9,11 +9,10 @@ module.exports.protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
     }
 
-    if (!token) {
+    if (!token)
       return res
         .status(401)
         .send({ status: 'error', message: 'Unauthorized. You need login or sign up' });
-    }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (decoded) {

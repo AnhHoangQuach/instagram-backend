@@ -53,14 +53,6 @@ module.exports.search = async (req, res, next) => {
   }
 };
 
-module.exports.checkHealth = (req, res, next) => {
-  try {
-    return res.status(200).json({ status: 'success', data: { message: 'System is healthy' } });
-  } catch (err) {
-    return res.status(500).json({ status: 'error', message: err.message });
-  }
-};
-
 module.exports.getSystem = async (req, res) => {
   try {
     const usersCount = await User.count({});

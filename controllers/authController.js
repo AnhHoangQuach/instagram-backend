@@ -96,9 +96,7 @@ module.exports.resetPassword = async (req, res) => {
     const { email, verifyCode, newPassword } = req.body;
 
     const { status, message } = await checkVerifyCode(verifyCode, email);
-    if (status === 'error') {
-      return res.status(400).json({ status, message });
-    }
+    if (status === 'error') return res.status(400).json({ status, message });
 
     const newPasswordError = validatePassword(newPassword);
     if (newPasswordError)
@@ -130,14 +128,12 @@ const generateVerifyCode = (numberOfDigits) => {
 module.exports.getVerifyCode = async (req, res) => {
   try {
     const { email } = req.query;
-    if (!Boolean(email)) {
-      return res.status(400).json({ status: 'error', message: 'Email is not exist' });
-    }
+
+    const emailError = validateEmail(email);
+    if (emailError) return res.status(400).json({ status: 'error', message: 'Email is not exist' });
 
     const isExist = await User.exists({ email });
-    if (!isExist) {
-      return res.status(400).json({ status: 'error', message: 'Email is not exist' });
-    }
+    if (!isExist) return res.status(400).json({ status: 'error', message: 'Email is not exist' });
 
     const verifyCode = generateVerifyCode(6);
 

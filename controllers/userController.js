@@ -18,11 +18,10 @@ module.exports.getUser = async (req, res, next) => {
   try {
     const user = await User.findOne({ _id: userId }).select('-password');
 
-    if (!user) {
+    if (!user)
       return res
         .status(404)
         .send({ status: 'error', message: 'Could not find a user with that id.' });
-    }
 
     const savedPosts = await Post.aggregate([
       { $match: { _id: { $in: user.savedPosts } } },
@@ -41,7 +40,7 @@ module.exports.getUser = async (req, res, next) => {
 
     const profileFollowStats = await Follower.findOne({ user: userId });
 
-    res.status(200).json({
+    return res.status(200).json({
       status: 'success',
       data: {
         user,
@@ -61,9 +60,7 @@ module.exports.getUser = async (req, res, next) => {
 module.exports.bookmarkPost = async (req, res, next) => {
   const { postId } = req.params;
   const user = req.user;
-  if (!user) {
-    return res.status(404).json({ status: 'error', message: 'Unauthorized' });
-  }
+  if (!user) return res.status(404).json({ status: 'error', message: 'Unauthorized' });
 
   try {
     const post = await Post.findById(postId);
@@ -94,9 +91,7 @@ module.exports.bookmarkPost = async (req, res, next) => {
 module.exports.followUser = async (req, res, next) => {
   const { userId } = req.params;
   const user = req.user;
-  if (!user || !userId) {
-    return res.status(404).json({ status: 'error', message: 'User not found' });
-  }
+  if (!user || !userId) return res.status(404).json({ status: 'error', message: 'User not found' });
 
   try {
     const mySelf = await Follower.findOne({ user: user.id });
@@ -106,9 +101,8 @@ module.exports.followUser = async (req, res, next) => {
       mySelf.following.length > 0 &&
       mySelf.following.filter((following) => following.user.toString() === userId).length > 0;
 
-    if (isFollowing) {
+    if (isFollowing)
       return res.status(400).json({ status: 'error', message: 'User Already Followed' });
-    }
 
     await mySelf.following.unshift({ user: userId });
     await mySelf.save();
@@ -135,17 +129,15 @@ module.exports.unfollowUser = async (req, res, next) => {
       user: userId,
     });
 
-    if (!user || !userToUnfollow) {
+    if (!user || !userToUnfollow)
       return res.status(404).json({ status: 'error', message: 'User not found' });
-    }
 
     const isFollowing =
       mySelf.following.length > 0 &&
       mySelf.following.filter((following) => following.user.toString() === userId).length === 0;
 
-    if (isFollowing) {
+    if (isFollowing)
       return res.status(400).json({ status: 'error', message: 'User Already Followed' });
-    }
 
     const removeFollowing = await mySelf.following
       .map((following) => following.user.toString())
@@ -207,11 +199,10 @@ module.exports.updateProfile = async (req, res, next) => {
       const usernameError = validateUsername(username);
       if (usernameError) return res.status(400).json({ status: 'error', message: usernameError });
       const findUser = await User.findOne({ username });
-      if (findUser && findUser.id !== user.id) {
+      if (findUser && findUser.id !== user.id)
         return res
           .status(400)
           .json({ status: 'error', message: 'Please choose another username.' });
-      }
       userDocument.username = username;
     }
     if (fullname) {
@@ -241,14 +232,12 @@ module.exports.updateProfile = async (req, res, next) => {
 
 module.exports.changeAvatar = async (req, res, next) => {
   const user = req.user;
-  if (!user) {
-    return res.status(401).json({ status: 'error', message: 'You not logged in' });
-  }
+  if (!user) return res.status(401).json({ status: 'error', message: 'You not logged in' });
 
   if (!req.file) {
     return res
       .status(400)
-      .json({ status: 'errror', message: 'Please provide the image to upload.' });
+      .json({ status: 'error', message: 'Please provide the image to upload.' });
   }
 
   cloudinary.config({
@@ -282,9 +271,7 @@ module.exports.changePassword = async (req, res, next) => {
     const userDocument = await User.findById(user._id);
 
     const result = await bcrypt.compare(oldPassword, userDocument.password);
-    if (!result) {
-      return res.status('400').json({ status: 'error', message: 'Wrong password' });
-    }
+    if (!result) return res.status('400').json({ status: 'error', message: 'Wrong password' });
 
     const newPasswordError = validatePassword(newPassword);
     if (newPasswordError)
